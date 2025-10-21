@@ -29,9 +29,30 @@
 		9A31CF162EA7E5D500304C61 /* kcaliflowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kcaliflowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9A31CF4E2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedStore.swift,
+			);
+			target = 9A31CF0B2EA7E5D500304C61 /* kcaliflowTests */;
+		};
+		9A31CF4F2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedStore.swift,
+			);
+			target = 9A31CF152EA7E5D500304C61 /* kcaliflowUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9A31CF012EA7E5D400304C61 /* kcaliflow */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9A31CF4E2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowTests" target */,
+				9A31CF4F2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowUITests" target */,
+			);
 			path = kcaliflow;
 			sourceTree = "<group>";
 		};
@@ -390,6 +411,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kcaliflow/kcaliflow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 84LS3N4W2V;
@@ -398,6 +420,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Um deine aktuell und in den vergangenen Tagen verbrauchten Kalorien anzuzeigen und daraus einen Durchschnitt sowie ein Tageskalorienziel zu berechnen.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -434,6 +457,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kcaliflow/kcaliflow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 84LS3N4W2V;
@@ -442,6 +466,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Um deine aktuell und in den vergangenen Tagen verbrauchten Kalorien anzuzeigen und daraus einen Durchschnitt sowie ein Tageskalorienziel zu berechnen.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
