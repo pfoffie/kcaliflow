@@ -34,6 +34,8 @@ class PFHealth: ObservableObject {
     private let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
     private let summaryType = HKObjectType.activitySummaryType()
     
+    private var fetching:Int = 0
+    
     @Published var days: [Day] = []
     @Published var goal: Int = 500 {
         didSet {
@@ -133,6 +135,7 @@ class PFHealth: ObservableObject {
     }
     
     private func recompute() {
+        fetching = 0
         let h = autoHalfLife(daysCount: days.count, endRatio: 0.1)
         todaysMinCalsGoal = requiredCalsToday(goal: Double(goal), halfLife: h, days: days.reversed())
         
@@ -188,7 +191,9 @@ class PFHealth: ObservableObject {
     
     @MainActor
     func loadFromHealthKit() async {
+        fetching = 1
         do {
+            NSLog("loadFromHealthKit")
             try await requestAuthorization()
             let rows = try await fetchDailyEnergy(last: maxDays)
             
@@ -240,9 +245,11 @@ class PFHealth: ObservableObject {
                 completion()
                 return
             }
-            Task {
-                await self?.loadFromHealthKit()
-                completion() // wichtig! sonst keine weiteren Updates
+            if(self?.fetching == 0){
+                Task {
+                    await self?.loadFromHealthKit()
+                    completion() // wichtig! sonst keine weiteren Updates
+                }
             }
         }
 

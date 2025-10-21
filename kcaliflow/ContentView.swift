@@ -155,15 +155,11 @@ struct ContentView: View {
         .padding()
         .task {
             do {
+                NSLog("task -> do")
                 try await pf.requestAuthorization()
                 await pf.loadFromHealthKit()
             } catch {
                 print("HealthKit-Fehler:", error.localizedDescription)
-            }
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                Task { await pf.loadFromHealthKit() }
             }
         }
         
