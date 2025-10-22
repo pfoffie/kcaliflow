@@ -32,17 +32,32 @@ struct ContentView: View {
             
             VStack(spacing: 0) {
                 if(pf.todaysCals < pf.todaysMinCalsGoal) {
-                    Text("Noch \(pf.todaysMinCalsGoal - pf.todaysCals) KCAL")
-                        .font(.title)
+                    Text(
+                        String(localized: "info_rest_kcal")
+                        .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysMinCalsGoal - pf.todaysCals)")
+                    )
+                    .font(.title)
                     
-                    Text("Bisher erreicht: \(pf.todaysCals) KCAL")
+                    Text(
+                        String(localized: "info_made_kcal_sofar")
+                        .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysCals)")
+                    )
                 }else{
-                    Text("\(pf.todaysCals) KCAL geschafft")
+                    Text(
+                        String(localized: "info_made_kcal")
+                        .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysCals)")
+                    )
                         .font(.title)
                 }
             
-                Text("Ziel heute: \(pf.todaysMinCalsGoal) KCAL")
-                Text("Aktueller Durchschnitt: \(pf.avgCals) KCAL")
+                Text(
+                    String(localized: "info_goal_today")
+                    .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysMinCalsGoal)")
+                )
+                Text(
+                    String(localized: "info_curr_average")
+                    .replacingOccurrences(of: "{kcal}", with: "\(pf.avgCals)")
+                )
             }
             
             
@@ -127,16 +142,16 @@ struct ContentView: View {
             
             HStack(spacing: 12) {
                 
-                Text("Kalorienziel:")
+                Text(String(localized: "setting_goal_kcal"))
                 
-                TextField("Kalorienziel", value: $pf.goal, format: .number)
+                TextField(String(localized: "setting_goal_kcal"), value: $pf.goal, format: .number)
                     #if os(iOS)
                     .keyboardType(.numberPad)
                     #endif
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: .infinity)
                 
-                Stepper("Kalorienziel",
+                Stepper(String(localized: "setting_goal_kcal"),
                         value: $pf.goal,
                         in: 0...5000,
                         step: 5)
@@ -144,12 +159,15 @@ struct ContentView: View {
                 
             }
             
-            Stepper("Durchschnitt aus \(pf.rollingDays) Tagen",
+            Stepper(String(localized: "setting_avg_days")
+                        .replacingOccurrences(of: "{days}", with: "\(pf.rollingDays)"),
                     value: $pf.rollingDays,
                     in: 2...pf.maxDays,
                     step: 1)
         
-            Text(" Fitness Ziel: \(pf.aplGoal) KCAL\nWir empfehlen, das Kalorienziel auf eine Zahl zu setzen, die du immer erreichst. (in deinem Fall \(pf.minCals) KCAL)")
+            Text(String(localized: "note_apple_fitness")
+                .replacingOccurrences(of: "{goal}", with: "\(pf.aplGoal)")
+                .replacingOccurrences(of: "{min}", with: "\(pf.minCals)"))
                 .font(.footnote)
         }
         .padding()

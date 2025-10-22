@@ -1,0 +1,91 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.75493,0.76701,0.00000,1.00000",
+      "display-p3:0.33250,0.49862,0.32679,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "Slice5.png",
+          "name" : "Slice5",
+          "position" : {
+            "scale" : 0.68,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "Slice4.png",
+          "name" : "Slice4",
+          "position" : {
+            "scale" : 0.68,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "Slice3.png",
+          "name" : "Slice3",
+          "position" : {
+            "scale" : 0.68,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "hidden" : false,
+          "image-name" : "Slice2.png",
+          "name" : "Slice2",
+          "position" : {
+            "scale" : 0.68,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "fill" : "none",
+          "image-name" : "Slice1.png",
+          "name" : "Slice1",
+          "position" : {
+            "scale" : 0.68,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

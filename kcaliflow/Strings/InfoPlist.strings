@@ -1,0 +1,9 @@
+//
+//  InfoPlist.strings
+//  kcaliflow
+//
+//  Created by René Jossen on 22.10.2025.
+//
+
+
+"NSHealthShareUsageDescription" = "Um deine aktuell und in den vergangenen Tagen verbrauchten Kalorien anzuzeigen und daraus einen Durchschnitt sowie ein Tageskalorienziel zu berechnen.";
