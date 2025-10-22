@@ -60,7 +60,7 @@ class PFHealth: ObservableObject {
     var todaysCals: Int = 0
     
     
-    init() {
+    init(type: String = "app") {
         if let stored = UserDefaults.standard.object(forKey: daysKey) as? Int {
             rollingDays = stored
         }
@@ -69,6 +69,10 @@ class PFHealth: ObservableObject {
         
         if let stored = UserDefaults.standard.object(forKey: goalKey) as? Int {
             goal = stored
+        }
+        
+        if type == "widget" {
+            mirrorFromSharedStore()
         }
     }
     
@@ -270,6 +274,7 @@ class PFHealth: ObservableObject {
     // widget things
     
     private func mirrorToWidget() {
+        NSLog("mirrorToWidget")
         SharedStore.write(
             aplGoal: aplGoal,
             minCals: minCals,
@@ -278,7 +283,17 @@ class PFHealth: ObservableObject {
             todaysCals: todaysCals,
             todaysMinCalsGoal: todaysMinCalsGoal
         )
-        //WidgetCenter.shared.reloadAllTimelines()
+        print(SharedStore.read())
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    
+    func mirrorFromSharedStore() {
+        let r = SharedStore.read();
+        self.aplGoal =      r.aplGoal
+        self.minCals =      r.minCals
+        self.avgCals =      r.avgCals
+        self.goal =         r.goal
+        self.todaysCals =   r.todaysCals
     }
 }
 
