@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9AAE0DEE2EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
+		9AAE0DEF2EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
+		9AAE0DF02EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		9A31CF0D2EA7E5D500304C61 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +33,7 @@
 		9A31CEFF2EA7E5D400304C61 /* kcaliflow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kcaliflow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A31CF0C2EA7E5D500304C61 /* kcaliflowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kcaliflowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A31CF162EA7E5D500304C61 /* kcaliflowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kcaliflowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -35,7 +42,6 @@
 			membershipExceptions = (
 				Assets/Assets.xcassets,
 				Assets/kcaliflow.icon,
-				SharedStore.swift,
 			);
 			target = 9A31CF0B2EA7E5D500304C61 /* kcaliflowTests */;
 		};
@@ -44,7 +50,6 @@
 			membershipExceptions = (
 				Assets/Assets.xcassets,
 				Assets/kcaliflow.icon,
-				SharedStore.swift,
 			);
 			target = 9A31CF152EA7E5D500304C61 /* kcaliflowUITests */;
 		};
@@ -104,6 +109,7 @@
 				9A31CF0F2EA7E5D500304C61 /* kcaliflowTests */,
 				9A31CF192EA7E5D500304C61 /* kcaliflowUITests */,
 				9A31CF002EA7E5D400304C61 /* Products */,
+				9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -261,6 +267,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AAE0DEE2EA8CEAD00ABC47E /* SharedStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,6 +275,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AAE0DEF2EA8CEAD00ABC47E /* SharedStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,6 +283,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AAE0DF02EA8CEAD00ABC47E /* SharedStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

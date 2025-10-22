@@ -270,8 +270,15 @@ class PFHealth: ObservableObject {
     // widget things
     
     private func mirrorToWidget() {
-        SharedStore.write(goal: goal, todays: todaysCals, minToday: todaysMinCalsGoal, average: avgCals)
-        WidgetCenter.shared.reloadAllTimelines()
+        SharedStore.write(
+            aplGoal: aplGoal,
+            minCals: minCals,
+            avgCals: avgCals,
+            goal: goal,
+            todaysCals: todaysCals,
+            todaysMinCalsGoal: todaysMinCalsGoal
+        )
+        //WidgetCenter.shared.reloadAllTimelines()
     }
 }
 
