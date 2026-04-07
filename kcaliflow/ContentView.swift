@@ -31,6 +31,9 @@ struct ContentView: View {
                 
         VStack(spacing: 16) {
             
+            Spacer()
+            
+            let c_info = (pf.todaysCals < pf.todaysMinCalsGoal ? Color.pink : Color.green).opacity(0.5)
             
             VStack(spacing: 0) {
                 if(pf.todaysCals < pf.todaysMinCalsGoal) {
@@ -61,7 +64,21 @@ struct ContentView: View {
                     .replacingOccurrences(of: "{kcal}", with: "\(pf.avgCals)")
                 )
             }
+            .padding()
+            .background(c_info)
+            .cornerRadius(12)
             
+            if(pf.todaysCals < pf.aplGoal || true){
+                VStack(spacing: 0) {
+                    Text(
+                        String(localized: "info_aplGoal_today")
+                        .replacingOccurrences(of: "{kcal}", with: "\(pf.aplGoal)")
+                    )
+                }
+                .foregroundStyle(Color.pink)
+            }
+            
+            Spacer()
             
             ZStack {
                 // Inner compositing group: chart + right-fade gradient
@@ -263,3 +280,4 @@ struct ContentView: View {
     ContentView()
         .environmentObject(PFHealth())
 }
+

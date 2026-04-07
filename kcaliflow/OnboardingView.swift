@@ -30,10 +30,6 @@ struct OnboardingView: View {
         VStack(spacing: 28) {
             Spacer()
 
-            Image(systemName: "flame.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(.orange)
-
             VStack(spacing: 10) {
                 Text("Willkommen bei\nkcaliflow")
                     .font(.largeTitle.bold())
@@ -64,9 +60,6 @@ struct OnboardingView: View {
         ScrollView {
             VStack(spacing: 24) {
                 VStack(spacing: 8) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.green)
 
                     Text("Dein Ziel")
                         .font(.largeTitle.bold())
@@ -76,7 +69,6 @@ struct OnboardingView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.top, 60)
 
                 VStack(spacing: 16) {
                     HStack(spacing: 12) {
@@ -105,9 +97,9 @@ struct OnboardingView: View {
                     Text("Dein Ziel ist ein **Durchschnittswert** über mehrere Tage – kein tägliches Pflichtpensum. Wenn du heute 1'000 kcal verbrennst und dein Ziel 500 kcal ist, kannst du morgen 0 kcal erreichen und liegst trotzdem im Schnitt.")
                     Text("Das Besondere: Ältere Tage zählen weniger. Je weiter ein Tag zurückliegt, desto geringer sein Einfluss auf deinen aktuellen Durchschnitt. Der Effekt von heute **verblasst mit der Zeit** – und gibt dir immer schneller wieder Spielraum.")
                 }
+                Spacer()
 
                 nextButton(label: "Weiter") { page = 2 }
-                    .padding(.bottom, 70)
             }
             .padding(.horizontal)
         }
@@ -119,9 +111,6 @@ struct OnboardingView: View {
         ScrollView {
             VStack(spacing: 24) {
                 VStack(spacing: 8) {
-                    Image(systemName: "figure.run.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.pink)
 
                     Text("Apple Fitness Ziel")
                         .font(.largeTitle.bold())
@@ -131,7 +120,6 @@ struct OnboardingView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.top, 60)
 
                 infoCard(icon: "star.fill", iconColor: .pink, title: "Warum brauchst du das?") {
                     Text("Die Fitness-App misst täglich, ob du dein Bewegungsziel erreichst – das ist die Grundlage für deine Streaks. kcaliflow zeigt dir, wie viel du **heute mindestens** verbrennen solltest, damit dein gewichteter Durchschnitt stimmt.")
@@ -141,14 +129,13 @@ struct OnboardingView: View {
                     Text("Apple erlaubt Apps leider nicht, das Bewegungsziel in der Fitness-App automatisch zu verändern. Du musst es dort manuell anpassen.")
                 }
 
-                infoCard(icon: "lightbulb.fill", iconColor: .yellow, title: "Unsere Empfehlung") {
+                infoCard(icon: "lightbulb.fill", iconColor: .secondary, title: "Unsere Empfehlung") {
                     Text("Setze das Ziel auf eine Zahl, die du **an einem normalen Tag** in der Regel erreichst. An Ausnahmetagen – zum Beispiel einem Ruhetag – kannst du das Ziel in der Fitness-App für genau diesen Tag manuell nach unten korrigieren.")
                 }
 
                 nextButton(label: "Los geht's!") {
                     hasCompletedOnboarding = true
                 }
-                .padding(.bottom, 70)
             }
             .padding(.horizontal)
         }

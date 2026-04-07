@@ -11,6 +11,7 @@
 
 "info_goal_today" = "Ziel heute: {kcal} KCAL";
 "info_curr_average" = "Aktueller Durchschnitt: {kcal} KCAL";
+"info_aplGoal_today" = " Fitness Ziel noch nicht erreicht.";
 
 "setting_goal_kcal" = "Kalorienziel:";
 "setting_avg_days" = "Durchschnitt aus {days} Tagen";
