@@ -146,7 +146,6 @@ class PFHealth: ObservableObject {
         //avgCals = days.map(\.cals).reduce(0, +) / self.rollingDays
         avgCals = weightedAverageCals(halfLife: h, days: days.reversed())
         
-        
         mirrorToWidget()
     }
     
@@ -249,9 +248,16 @@ class PFHealth: ObservableObject {
                 completion()
                 return
             }
+            
             if(self?.fetching == 0){
                 Task {
+                    NSLog("ObserveNew")
                     await self?.loadFromHealthKit()
+                    completion() // wichtig! sonst keine weiteren Updates
+                }
+            }else{
+                Task {
+                    NSLog("ObserveIdle \(await self?.fetching ?? -1)")
                     completion() // wichtig! sonst keine weiteren Updates
                 }
             }
@@ -274,7 +280,7 @@ class PFHealth: ObservableObject {
     // widget things
     
     private func mirrorToWidget() {
-        NSLog("mirrorToWidget")
+        //NSLog("mirrorToWidget")
         SharedStore.write(
             aplGoal: aplGoal,
             minCals: minCals,
@@ -283,7 +289,6 @@ class PFHealth: ObservableObject {
             todaysCals: todaysCals,
             todaysMinCalsGoal: todaysMinCalsGoal
         )
-        print(SharedStore.read())
         WidgetCenter.shared.reloadAllTimelines()
     }
     

@@ -10,27 +10,44 @@ import SwiftUI
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> KcaliEntry {
-        KcaliEntry(date: Date())
+        let r = SharedStore.read();
+        return KcaliEntry(date: Date(),
+                          aplGoal: r.aplGoal,
+                          minCals: r.minCals,
+                          avgCals: r.avgCals,
+                          goal: r.goal,
+                          todaysCals: r.todaysCals,
+                          todaysMinCalsGoal: r.todaysMinCalsGoal)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (KcaliEntry) -> ()) {
-        let entry = KcaliEntry(date: Date())
+        let r = SharedStore.read();
+        let entry = KcaliEntry(date: Date(),
+                               aplGoal: r.aplGoal,
+                               minCals: r.minCals,
+                               avgCals: r.avgCals,
+                               goal: r.goal,
+                               todaysCals: r.todaysCals,
+                               todaysMinCalsGoal: r.todaysMinCalsGoal
+                    )
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         var entries: [KcaliEntry] = []
-
-        let currentDate = Date()
-        entries.append(KcaliEntry(date: currentDate))
         
-        /*
-        for i in 0...10 {
-            entries.append(KcaliEntry(date: Calendar.current.date(byAdding: .second, value: i * 10, to: currentDate)!))
-        }
-        */
-           
-        let timeline = Timeline(entries: entries, policy: .atEnd)
+        let r = SharedStore.read();
+        let currentDate = Date()
+        entries.append(KcaliEntry(date: currentDate,
+                                  aplGoal: r.aplGoal,
+                                  minCals: r.minCals,
+                                  avgCals: r.avgCals,
+                                  goal: r.goal,
+                                  todaysCals: r.todaysCals,
+                                  todaysMinCalsGoal: r.todaysMinCalsGoal))
+        
+        let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
+        let timeline = Timeline(entries: entries, policy: .after(next))
         completion(timeline)
     }
 
@@ -41,22 +58,26 @@ struct Provider: TimelineProvider {
 
 struct KcaliEntry: TimelineEntry {
     let date: Date
+    let aplGoal: Int
+    let minCals: Int
+    let avgCals: Int
+    let goal: Int
+    let todaysCals: Int
+    let todaysMinCalsGoal: Int
 }
 
 struct kcaliWidgetEntryView : View {
     var entry: Provider.Entry
     var body: some View {
-        let r = SharedStore.read()
-        // Current Time HH:MM:SS
         
         ZStack {
             GeometryReader { geo in
                 let anchor = ((geo.size.width + geo.size.height) / 2) // todaysMinCalsGoal
                 
-                let todaysMinCalsGoal:CGFloat = CGFloat(r.todaysMinCalsGoal)
-                let todaysCals:CGFloat = CGFloat(r.todaysCals)
-                let aplGoal:CGFloat = CGFloat(r.aplGoal)
-                let goal:CGFloat = CGFloat(r.goal)
+                let todaysMinCalsGoal:CGFloat = CGFloat(entry.todaysMinCalsGoal)
+                let todaysCals:CGFloat = CGFloat(entry.todaysCals)
+                let aplGoal:CGFloat = CGFloat(entry.aplGoal)
+                let goal:CGFloat = CGFloat(entry.goal)
                 
                 
                 let c_aplGoal = anchor * (aplGoal / todaysMinCalsGoal)
@@ -101,9 +122,9 @@ struct kcaliWidgetEntryView : View {
                 // Your content on top
                 VStack {
                     //Text("\(entry.date, format: .dateTime.hour().minute().second())")
-                    Text("\(r.todaysCals) / \(r.todaysMinCalsGoal)")
+                    Text("\(entry.todaysCals) / \(entry.todaysMinCalsGoal)")
                     
-                    Text("ø \(r.avgCals) / \(r.goal)")
+                    Text("ø \(entry.avgCals) / \(entry.goal)")
                         .font(.caption2)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -135,5 +156,12 @@ struct kcaliWidget: Widget {
 #Preview(as: .systemSmall) {
     kcaliWidget()
 } timeline: {
-    KcaliEntry(date: .now)
+    KcaliEntry(date: .now,
+               aplGoal: 444,
+               minCals: 666,
+               avgCals: 777,
+               goal: 888,
+               todaysCals: 333,
+               todaysMinCalsGoal: 555)
 }
+

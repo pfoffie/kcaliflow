@@ -173,7 +173,6 @@ struct ContentView: View {
         .padding()
         .task {
             do {
-                NSLog("task -> do")
                 try await pf.requestAuthorization()
                 await pf.loadFromHealthKit()
             } catch {
