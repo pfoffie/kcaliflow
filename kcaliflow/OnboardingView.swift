@@ -31,16 +31,16 @@ struct OnboardingView: View {
             Spacer()
 
             VStack(spacing: 10) {
-                Text("Willkommen bei\nkcaliflow")
+                Text("onboarding_welcome_title")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
 
-                Text("Weniger Druck. Mehr Freiheit.")
+                Text("onboarding_welcome_tagline")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
 
-            Text("kcaliflow berechnet einen gewichteten Rollendurchschnitt deiner aktiven Kalorien. Du musst nicht jeden Tag Bestleistung bringen – verbrenne heute mehr, und morgen darfst du weniger.")
+            Text("onboarding_welcome_body")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -48,7 +48,7 @@ struct OnboardingView: View {
 
             Spacer()
 
-            nextButton(label: "Weiter") { page = 1 }
+            nextButton(label: String(localized: "onboarding_btn_next")) { page = 1 }
         }
         .padding(.horizontal)
         .padding(.bottom, 70)
@@ -61,10 +61,10 @@ struct OnboardingView: View {
             VStack(spacing: 24) {
                 VStack(spacing: 8) {
 
-                    Text("Dein Ziel")
+                    Text("onboarding_goal_title")
                         .font(.largeTitle.bold())
 
-                    Text("Lege fest, wie viele kcal du im Durchschnitt pro Tag verbrennen möchtest.")
+                    Text("onboarding_goal_subtitle")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -72,7 +72,7 @@ struct OnboardingView: View {
 
                 VStack(spacing: 16) {
                     HStack(spacing: 12) {
-                        Text("Kalorienziel:")
+                        Text(String(localized: "setting_goal_kcal"))
                         TextField("500", value: $pf.goal, format: .number)
                             #if os(iOS)
                             .keyboardType(.numberPad)
@@ -84,7 +84,8 @@ struct OnboardingView: View {
                     }
 
                     Stepper(
-                        "Durchschnitt aus \(pf.rollingDays) Tagen",
+                        String(localized: "setting_avg_days")
+                            .replacingOccurrences(of: "{days}", with: "\(pf.rollingDays)"),
                         value: $pf.rollingDays,
                         in: 2...pf.maxDays
                     )
@@ -93,13 +94,13 @@ struct OnboardingView: View {
                 .background(.quaternary)
                 .cornerRadius(12)
 
-                infoCard(icon: "info.circle", iconColor: .accentColor, title: "Wie funktioniert das?") {
-                    Text("Dein Ziel ist ein **Durchschnittswert** über mehrere Tage – kein tägliches Pflichtpensum. Wenn du heute 1'000 kcal verbrennst und dein Ziel 500 kcal ist, kannst du morgen 0 kcal erreichen und liegst trotzdem im Schnitt.")
-                    Text("Das Besondere: Ältere Tage zählen weniger. Je weiter ein Tag zurückliegt, desto geringer sein Einfluss auf deinen aktuellen Durchschnitt. Der Effekt von heute **verblasst mit der Zeit** – und gibt dir immer schneller wieder Spielraum.")
+                infoCard(icon: "info.circle", iconColor: .accentColor, title: String(localized: "onboarding_goal_how_title")) {
+                    Text("onboarding_goal_how_body_1")
+                    Text("onboarding_goal_how_body_2")
                 }
                 Spacer()
 
-                nextButton(label: "Weiter") { page = 2 }
+                nextButton(label: String(localized: "onboarding_btn_next")) { page = 2 }
             }
             .padding(.horizontal)
         }
@@ -112,28 +113,28 @@ struct OnboardingView: View {
             VStack(spacing: 24) {
                 VStack(spacing: 8) {
 
-                    Text("Apple Fitness Ziel")
+                    Text("onboarding_fitness_title")
                         .font(.largeTitle.bold())
 
-                    Text("Damit deine Fitness-Streaks nicht reissen.")
+                    Text("onboarding_fitness_subtitle")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
 
-                infoCard(icon: "star.fill", iconColor: .pink, title: "Warum brauchst du das?") {
-                    Text("Die Fitness-App misst täglich, ob du dein Bewegungsziel erreichst – das ist die Grundlage für deine Streaks. kcaliflow zeigt dir, wie viel du **heute mindestens** verbrennen solltest, damit dein gewichteter Durchschnitt stimmt.")
+                infoCard(icon: "star.fill", iconColor: .pink, title: String(localized: "onboarding_fitness_why_title")) {
+                    Text("onboarding_fitness_why_body")
                 }
 
-                infoCard(icon: "lock.fill", iconColor: .secondary, title: "Warum kann kcaliflow das nicht automatisch setzen?") {
-                    Text("Apple erlaubt Apps leider nicht, das Bewegungsziel in der Fitness-App automatisch zu verändern. Du musst es dort manuell anpassen.")
+                infoCard(icon: "lock.fill", iconColor: .secondary, title: String(localized: "onboarding_fitness_lock_title")) {
+                    Text("onboarding_fitness_lock_body")
                 }
 
-                infoCard(icon: "lightbulb.fill", iconColor: .secondary, title: "Unsere Empfehlung") {
-                    Text("Setze das Ziel auf eine Zahl, die du **an einem normalen Tag** in der Regel erreichst. An Ausnahmetagen – zum Beispiel einem Ruhetag – kannst du das Ziel in der Fitness-App für genau diesen Tag manuell nach unten korrigieren.")
+                infoCard(icon: "lightbulb.fill", iconColor: .secondary, title: String(localized: "onboarding_fitness_tip_title")) {
+                    Text("onboarding_fitness_tip_body")
                 }
 
-                nextButton(label: "Los geht's!") {
+                nextButton(label: String(localized: "onboarding_btn_start")) {
                     hasCompletedOnboarding = true
                 }
             }

@@ -15,10 +15,34 @@
 
 "setting_goal_kcal" = "Kalorienziel:";
 "setting_avg_days" = "Durchschnitt aus {days} Tagen";
-"note_apple_fitness" = " Fitness Ziel: {goal} KCAL\nWir empfehlen, das Kalorienziel auf eine Zahl zu setzen, die du immer erreichst. (in deinem Fall {min} KCAL)";
+"note_apple_fitness" = " Fitness Ziel: {goal} KCAL\nWir empfehlen ein Kalorienziel, das du zuverlässig erreichst. (In deinem Fall {min} KCAL)";
 
 "info_widget_description" = "Zeigt deinen Kalorienfortschritt und deine Ziele als Widget.";
 
 "legend_calories" = "Kalorien";
 "legend_minToday" = "Minimum Heute";
 "legend_avgGoal" = "Durchschnittsziel";
+
+// MARK: – Onboarding
+
+"onboarding_welcome_title" = "kcaliflow";
+"onboarding_welcome_tagline" = "Weniger Druck. Mehr Freiheit.";
+"onboarding_welcome_body" = "kcaliflow bildet einen gewichteten Durchschnitt deiner aktiven Kalorien. Du musst nicht jeden Tag Höchstleistung bringen – verbrennst du heute mehr, darfst du morgen kürzertreten.";
+
+"onboarding_btn_next" = "Weiter";
+"onboarding_btn_start" = "Los geht's!";
+
+"onboarding_goal_title" = "Dein Ziel";
+"onboarding_goal_subtitle" = "Wie viele kcal möchtest du im Durchschnitt pro Tag verbrennen?";
+"onboarding_goal_how_title" = "Wie funktioniert das?";
+"onboarding_goal_how_body_1" = "Dein Ziel ist ein **Durchschnitt** über mehrere Tage – kein tägliches Muss. Verbrennst du heute 1'000 kcal bei einem Ziel von 500 kcal, kannst du morgen pausieren und liegst trotzdem im Soll.";
+"onboarding_goal_how_body_2" = "Das Besondere: Ältere Tage verlieren an Gewicht. Je weiter zurück, desto weniger Einfluss. Der Effekt von heute **verblasst mit der Zeit** – und gibt dir immer wieder neuen Spielraum.";
+
+"onboarding_fitness_title" = "Apple Fitness Ziel";
+"onboarding_fitness_subtitle" = "Damit deine Streaks nicht reissen.";
+"onboarding_fitness_why_title" = "Warum brauchst du das?";
+"onboarding_fitness_why_body" = "Die Fitness-App prüft täglich, ob du dein Bewegungsziel erreichst – darauf basieren deine Streaks. kcaliflow zeigt dir, wie viel du **heute mindestens** verbrennen solltest, um deinen gewichteten Durchschnitt zu halten.";
+"onboarding_fitness_lock_title" = "Warum kann kcaliflow das nicht automatisch setzen?";
+"onboarding_fitness_lock_body" = "Apple erlaubt es Apps nicht, das Bewegungsziel der Fitness-App zu verändern. Du musst es dort manuell anpassen.";
+"onboarding_fitness_tip_title" = "Unsere Empfehlung";
+"onboarding_fitness_tip_body" = "Wähle eine Zahl, die du **an einem normalen Tag** erreichst. An Ausnahmetagen – etwa einem Ruhetag – kannst du das Ziel in der Fitness-App manuell senken.";
