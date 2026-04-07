@@ -129,7 +129,7 @@ struct ContentView: View {
                         domain: styleScaleDomains,
                         range: styleScaleRanges
                     )
-                    .chartLegend(spacing: 8)
+                    .chartLegend(.hidden)
                     .chartOverlay { proxy in
                         GeometryReader { geo in
                             Rectangle()
@@ -198,6 +198,19 @@ struct ContentView: View {
                 }
             }
             
+            HStack(spacing: 14) {
+                Label("Kalorien", systemImage: "triangle.fill")
+                    .foregroundStyle(Color.yellow)
+                Label("Minimum Heute", systemImage: "square.fill")
+                    .foregroundStyle(Color.pink)
+                Label("Durchschnittsziel", systemImage: "circle.fill")
+                    .foregroundStyle(Color.green)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding(.top, 6)
+            .padding(.horizontal, 6)
+            
             HStack(spacing: 12) {
                 
                 Text(String(localized: "setting_goal_kcal"))
@@ -249,4 +262,3 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
-

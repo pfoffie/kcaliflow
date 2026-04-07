@@ -92,8 +92,7 @@
 		9AC59C2C2EA9101A002696FA /* Exceptions for "kcaliflow" folder in "kcaliWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Strings/InfoPlist.strings,
-				Strings/Localizable.strings,
+				"/Localized: Strings/Localizable.strings",
 			);
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
 		};
