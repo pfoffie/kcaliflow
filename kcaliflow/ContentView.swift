@@ -67,7 +67,6 @@ struct ContentView: View {
                 // Inner compositing group: chart + right-fade gradient
                 ZStack {
                     Chart {
-                        // Red block spanning full chart width
                         if(pf.aplGoal > lower){
                             RectangleMark(
                                 yStart: .value("Baseline", lower),
@@ -120,24 +119,23 @@ struct ContentView: View {
                             .foregroundStyle(Color.yellow)
                         }
                     }
-                    .padding(.trailing, 1)
                     .frame(height: 200)
                     .chartYScale(domain: lower...upper)
-                    // Push data points inward so the last triangle isn't clipped by the gradient
-                    .chartXScale(range: .plotDimension(padding: 20))
+                    .chartXScale(range: .plotDimension(padding:40))
                     .chartXAxis(.hidden)
                     .chartYAxis(.hidden)
                     .chartForegroundStyleScale(
                         domain: styleScaleDomains,
                         range: styleScaleRanges
                     )
+                    .chartLegend(spacing: 8)
                     .chartOverlay { proxy in
                         GeometryReader { geo in
                             Rectangle()
                                 .fill(.clear)
                                 .contentShape(Rectangle())
                                 .onTapGesture { location in
-                                    let origin = geo[proxy.plotAreaFrame].origin
+                                    let origin = geo[proxy.plotFrame!].origin
                                     let relativeX = location.x - origin.x
                                     if let dayVal: Int = proxy.value(atX: relativeX, as: Int.self) {
                                         let nearest = pf.days.min(by: { abs($0.day - dayVal) < abs($1.day - dayVal) })

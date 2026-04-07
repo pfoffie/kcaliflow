@@ -93,6 +93,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Strings/InfoPlist.strings,
+				Strings/Localizable.strings,
 			);
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
 		};
