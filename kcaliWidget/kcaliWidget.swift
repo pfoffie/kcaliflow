@@ -163,8 +163,10 @@ struct kcaliWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("kcaliflow")
+        .description(
+            String(localized: "info_widget_description")
+        )
     }
 }
 

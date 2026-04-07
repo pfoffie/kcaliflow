@@ -35,6 +35,7 @@ class PFHealth: ObservableObject {
     private let summaryType = HKObjectType.activitySummaryType()
     
     private var fetching:Int = 0
+    private var pendingReload = false
     @Published var isLoading: Bool = true
     
     @Published var days: [Day] = []
@@ -148,6 +149,11 @@ class PFHealth: ObservableObject {
         avgCals = weightedAverageCals(halfLife: h, days: days.reversed())
         
         mirrorToWidget()
+
+        if pendingReload {
+            pendingReload = false
+            Task { await loadFromHealthKit() }
+        }
     }
     
     func requestAuthorization() async throws {
@@ -164,30 +170,27 @@ class PFHealth: ObservableObject {
         startObservingEnergy()
     }
     
-    func fetchDailyEnergy(last n: Int) async throws -> [(date: Date, kcal: Int)] {
+    func fetchActivitySummaries(last n: Int) async throws -> [(date: Date, kcal: Int)] {
         let cal = Calendar.current
-        let end = Date()
-        let startOfToday = cal.startOfDay(for: end)
-        let start = cal.date(byAdding: .day, value: -(n-1), to: startOfToday)!
-        let interval = DateComponents(day: 1)
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
+
+        var start = cal.dateComponents([.year, .month, .day], from: startDate)
+        start.calendar = cal
+        var end = cal.dateComponents([.year, .month, .day], from: today)
+        end.calendar = cal
+
+        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
 
         return try await withCheckedThrowingContinuation { cont in
-            let q = HKStatisticsCollectionQuery(
-                quantityType: energyType,
-                quantitySamplePredicate: predicate,
-                options: .cumulativeSum,
-                anchorDate: startOfToday,
-                intervalComponents: interval
-            )
-            q.initialResultsHandler = { _, results, error in
+            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
                 if let error = error { return cont.resume(throwing: error) }
-                var out: [(Date, Int)] = []
-                results?.enumerateStatistics(from: start, to: end) { stat, _ in
-                    let val = stat.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
-                    out.append((stat.startDate, Int(round(val))))
-                }
-                cont.resume(returning: out)
+                let result: [(Date, Int)] = (summaries ?? []).compactMap { s in
+                    guard let date = cal.date(from: s.dateComponents(for: cal)) else { return nil }
+                    let kcal = s.activeEnergyBurned.doubleValue(for: .kilocalorie())
+                    return (date, Int(round(kcal)))
+                }.sorted { $0.0 < $1.0 }
+                cont.resume(returning: result)
             }
             store.execute(q)
         }
@@ -195,16 +198,29 @@ class PFHealth: ObservableObject {
     
     @MainActor
     func loadFromHealthKit() async {
-        guard fetching == 0 else { return }
+        guard fetching == 0 else {
+            pendingReload = true
+            return
+        }
         fetching = 1
         do {
             NSLog("loadFromHealthKit")
-            let rows = try await fetchDailyEnergy(last: maxDays)
-            
-            aplDays.removeAll()
-            self.aplDays = rows.enumerated().map { idx, r in
-                Day(day: maxDays - idx - 1, cals: r.kcal)
+            let cal = Calendar.current
+            let today = cal.startOfDay(for: Date())
+
+            let summaries = try await fetchActivitySummaries(last: maxDays)
+            var calsByDate: [Date: Int] = [:]
+            for (date, kcal) in summaries {
+                calsByDate[cal.startOfDay(for: date)] = kcal
             }
+
+            aplDays.removeAll()
+            for i in 0..<maxDays {
+                let date = cal.date(byAdding: .day, value: -(maxDays - 1 - i), to: today)!
+                let kcal = calsByDate[date] ?? 0
+                aplDays.append(Day(day: maxDays - i - 1, cals: kcal))
+            }
+
             self.todaysCals = self.aplDays.last?.cals ?? 0
             self.minCals = self.aplDays.dropLast().map(\.cals).min() ?? 0
             
