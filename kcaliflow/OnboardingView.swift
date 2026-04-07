@@ -12,6 +12,9 @@ struct OnboardingView: View {
     @EnvironmentObject private var pf: PFHealth
 
     @State private var page = 0
+    #if os(iOS)
+    @FocusState private var goalFieldFocused: Bool
+    #endif
 
     var body: some View {
         TabView(selection: $page) {
@@ -48,7 +51,9 @@ struct OnboardingView: View {
 
             Spacer()
 
-            nextButton(label: String(localized: "onboarding_btn_next")) { page = 1 }
+            nextButton(label: String(localized: "onboarding_btn_next")) {
+                page = 1
+            }
         }
         .padding(.horizontal)
         .padding(.bottom, 70)
@@ -57,88 +62,150 @@ struct OnboardingView: View {
     // MARK: – Page 2: Goal setup
 
     private var goalPage: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                VStack(spacing: 8) {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 24) {
+                    VStack(spacing: 8) {
+                        Text("onboarding_goal_title")
+                            .font(.largeTitle.bold())
 
-                    Text("onboarding_goal_title")
-                        .font(.largeTitle.bold())
+                        Text("onboarding_goal_subtitle")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
 
-                    Text("onboarding_goal_subtitle")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-
-                VStack(spacing: 16) {
-                    HStack(spacing: 12) {
-                        Text(String(localized: "setting_goal_kcal"))
-                        TextField("500", value: $pf.goal, format: .number)
+                    VStack(spacing: 16) {
+                        HStack(spacing: 12) {
+                            Text(String(localized: "setting_goal_kcal"))
+                            TextField(
+                                "500",
+                                value: $pf.goal,
+                                format: .number
+                            )
                             #if os(iOS)
                             .keyboardType(.numberPad)
+                            .focused($goalFieldFocused)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button(
+                                        String(
+                                            localized: "button_done"
+                                        )
+                                    ) {
+                                        goalFieldFocused = false
+                                    }
+                                }
+                            }
                             #endif
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: .infinity)
-                        Stepper("", value: $pf.goal, in: 0...5000, step: 5)
+                            Stepper(
+                                "",
+                                value: $pf.goal,
+                                in: 0...5000,
+                                step: 5
+                            )
                             .labelsHidden()
+                        }
+
+                        Stepper(
+                            String(localized: "setting_avg_days")
+                                .replacingOccurrences(
+                                    of: "{days}",
+                                    with: "\(pf.rollingDays)"
+                                ),
+                            value: $pf.rollingDays,
+                            in: 2...pf.maxDays
+                        )
                     }
+                    .padding()
+                    .background(.quaternary)
+                    .cornerRadius(12)
 
-                    Stepper(
-                        String(localized: "setting_avg_days")
-                            .replacingOccurrences(of: "{days}", with: "\(pf.rollingDays)"),
-                        value: $pf.rollingDays,
-                        in: 2...pf.maxDays
-                    )
+                    infoCard(
+                        icon: "info.circle",
+                        iconColor: .accentColor,
+                        title: String(
+                            localized: "onboarding_goal_how_title"
+                        )
+                    ) {
+                        Text("onboarding_goal_how_body_1")
+                        Text("onboarding_goal_how_body_2")
+                    }
                 }
-                .padding()
-                .background(.quaternary)
-                .cornerRadius(12)
+                .padding(.horizontal)
+                .padding(.top, 24)
+            }
 
-                infoCard(icon: "info.circle", iconColor: .accentColor, title: String(localized: "onboarding_goal_how_title")) {
-                    Text("onboarding_goal_how_body_1")
-                    Text("onboarding_goal_how_body_2")
-                }
-                Spacer()
-
-                nextButton(label: String(localized: "onboarding_btn_next")) { page = 2 }
+            nextButton(label: String(localized: "onboarding_btn_next")) {
+                page = 2
             }
             .padding(.horizontal)
+            .padding(.bottom, 70)
+            .padding(.top, 12)
         }
     }
 
     // MARK: – Page 3: Apple Fitness
 
     private var appleFitnessPage: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                VStack(spacing: 8) {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 24) {
+                    VStack(spacing: 8) {
+                        Text("onboarding_fitness_title")
+                            .font(.largeTitle.bold())
 
-                    Text("onboarding_fitness_title")
-                        .font(.largeTitle.bold())
+                        Text("onboarding_fitness_subtitle")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
 
-                    Text("onboarding_fitness_subtitle")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                    infoCard(
+                        icon: "star.fill",
+                        iconColor: .pink,
+                        title: String(
+                            localized: "onboarding_fitness_why_title"
+                        )
+                    ) {
+                        Text("onboarding_fitness_why_body")
+                    }
+
+                    infoCard(
+                        icon: "lock.fill",
+                        iconColor: .secondary,
+                        title: String(
+                            localized: "onboarding_fitness_lock_title"
+                        )
+                    ) {
+                        Text("onboarding_fitness_lock_body")
+                    }
+
+                    infoCard(
+                        icon: "lightbulb.fill",
+                        iconColor: .secondary,
+                        title: String(
+                            localized: "onboarding_fitness_tip_title"
+                        )
+                    ) {
+                        Text("onboarding_fitness_tip_body")
+                    }
                 }
+                .padding(.horizontal)
+                .padding(.top, 24)
+            }
 
-                infoCard(icon: "star.fill", iconColor: .pink, title: String(localized: "onboarding_fitness_why_title")) {
-                    Text("onboarding_fitness_why_body")
-                }
-
-                infoCard(icon: "lock.fill", iconColor: .secondary, title: String(localized: "onboarding_fitness_lock_title")) {
-                    Text("onboarding_fitness_lock_body")
-                }
-
-                infoCard(icon: "lightbulb.fill", iconColor: .secondary, title: String(localized: "onboarding_fitness_tip_title")) {
-                    Text("onboarding_fitness_tip_body")
-                }
-
-                nextButton(label: String(localized: "onboarding_btn_start")) {
-                    hasCompletedOnboarding = true
-                }
+            nextButton(
+                label: String(localized: "onboarding_btn_start")
+            ) {
+                hasCompletedOnboarding = true
             }
             .padding(.horizontal)
+            .padding(.bottom, 70)
+            .padding(.top, 12)
         }
     }
 
@@ -165,7 +232,10 @@ struct OnboardingView: View {
         .cornerRadius(12)
     }
 
-    private func nextButton(label: String, action: @escaping () -> Void) -> some View {
+    private func nextButton(
+        label: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button {
             withAnimation { action() }
         } label: {

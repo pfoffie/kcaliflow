@@ -23,6 +23,8 @@
 "legend_minToday" = "Minimum Heute";
 "legend_avgGoal" = "Durchschnittsziel";
 
+"button_done" = "OK";
+
 // MARK: – Onboarding
 
 "onboarding_welcome_title" = "kcaliflow";

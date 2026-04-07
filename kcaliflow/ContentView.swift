@@ -14,6 +14,9 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedDay: Day? = nil
     @State private var tooltipPos: CGPoint = .zero
+    #if os(iOS)
+    @FocusState private var goalFieldFocused: Bool
+    #endif
     
     var body: some View {
         
@@ -235,6 +238,13 @@ struct ContentView: View {
                 TextField(String(localized: "setting_goal_kcal"), value: $pf.goal, format: .number)
                     #if os(iOS)
                     .keyboardType(.numberPad)
+                    .focused($goalFieldFocused)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button(String(localized: "button_done")) { goalFieldFocused = false }
+                        }
+                    }
                     #endif
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: .infinity)
