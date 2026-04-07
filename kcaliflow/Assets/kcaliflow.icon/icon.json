@@ -1,10 +1,27 @@
 {
-  "fill" : {
-    "linear-gradient" : [
-      "display-p3:0.75493,0.76701,0.00000,1.00000",
-      "display-p3:0.33250,0.49862,0.32679,1.00000"
-    ]
-  },
+  "fill-specializations" : [
+    {
+      "value" : {
+        "automatic-gradient" : "display-p3:0.74964,0.91570,0.75402,1.00000",
+        "orientation" : {
+          "start" : {
+            "x" : 0.5,
+            "y" : 0
+          },
+          "stop" : {
+            "x" : 0.5,
+            "y" : 0.7
+          }
+        }
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "automatic-gradient" : "display-p3:0.10886,0.31957,0.11442,1.00000"
+      }
+    }
+  ],
   "groups" : [
     {
       "layers" : [
@@ -61,6 +78,7 @@
         {
           "blend-mode" : "normal",
           "fill" : "none",
+          "glass" : true,
           "image-name" : "Slice1.png",
           "name" : "Slice1",
           "position" : {
