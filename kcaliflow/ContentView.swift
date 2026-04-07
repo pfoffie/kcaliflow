@@ -199,11 +199,11 @@ struct ContentView: View {
             }
             
             HStack(spacing: 14) {
-                Label("Kalorien", systemImage: "triangle.fill")
+                Label(String(localized: "legend_calories"), systemImage: "triangle.fill")
                     .foregroundStyle(Color.yellow)
-                Label("Minimum Heute", systemImage: "square.fill")
+                Label(String(localized: "legend_minToday"), systemImage: "square.fill")
                     .foregroundStyle(Color.pink)
-                Label("Durchschnittsziel", systemImage: "circle.fill")
+                Label(String(localized: "legend_avgGoal"), systemImage: "circle.fill")
                     .foregroundStyle(Color.green)
             }
             .font(.caption)

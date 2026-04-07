@@ -17,3 +17,7 @@
 "note_apple_fitness" = " Fitness Ziel: {goal} KCAL\nWir empfehlen, das Kalorienziel auf eine Zahl zu setzen, die du immer erreichst. (in deinem Fall {min} KCAL)";
 
 "info_widget_description" = "Zeigt deinen Kalorienfortschritt und deine Ziele als Widget.";
+
+"legend_calories" = "Kalorien";
+"legend_minToday" = "Minimum Heute";
+"legend_avgGoal" = "Durchschnittsziel";
