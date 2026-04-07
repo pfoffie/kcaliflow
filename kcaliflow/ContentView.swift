@@ -10,7 +10,7 @@ import Charts
 
 
 struct ContentView: View {
-    @StateObject private var pf = PFHealth()
+    @EnvironmentObject private var pf: PFHealth
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedDay: Day? = nil
     @State private var tooltipPos: CGPoint = .zero
@@ -261,4 +261,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(PFHealth())
 }

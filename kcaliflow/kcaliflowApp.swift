@@ -9,9 +9,18 @@ import SwiftUI
 
 @main
 struct kcaliflowApp: App {
+    @StateObject private var pf = PFHealth()
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if hasCompletedOnboarding {
+                ContentView()
+                    .environmentObject(pf)
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    .environmentObject(pf)
+            }
         }
     }
 }
