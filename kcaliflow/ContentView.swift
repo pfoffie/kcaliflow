@@ -12,6 +12,7 @@ import Charts
 struct ContentView: View {
     @StateObject private var pf = PFHealth()
     @Environment(\.scenePhase) private var scenePhase
+    @State private var selectedDay: Day? = nil
     
     var body: some View {
         
@@ -111,34 +112,78 @@ struct ContentView: View {
                         .interpolationMethod(.monotone)
                     }
                     
+                    // Callout for tapped triangle
+                    if let sel = selectedDay {
+                        PointMark(
+                            x: .value("Tag", sel.day),
+                            y: .value("Kalorien", sel.cals)
+                        )
+                        .foregroundStyle(Color.yellow)
+                        .annotation(position: .top, spacing: 4) {
+                            Text("\(sel.cals) kcal")
+                                .font(.caption2.bold())
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(Color.yellow.opacity(0.9))
+                                .foregroundColor(.black)
+                                .cornerRadius(4)
+                        }
+                    }
+                    
                     
                 }
                 .padding(.trailing, 1)
                 .frame(height: 200)
                 .chartYScale(domain: lower...upper)
+                // Push data points inward so the last triangle isn't clipped by the gradient
+                .chartXScale(range: .plotDimension(padding: 20))
                 .chartXAxis(.hidden)
                 .chartYAxis(.hidden)
                 .chartForegroundStyleScale(
                     domain: styleScaleDomains,
                     range: styleScaleRanges
                 )
+                .chartOverlay { proxy in
+                    GeometryReader { geo in
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(Rectangle())
+                            .onTapGesture { location in
+                                let origin = geo[proxy.plotAreaFrame].origin
+                                let relativeX = location.x - origin.x
+                                if let dayVal: Int = proxy.value(atX: relativeX, as: Int.self) {
+                                    let nearest = pf.days.min(by: { abs($0.day - dayVal) < abs($1.day - dayVal) })
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        selectedDay = (selectedDay?.id == nearest?.id) ? nil : nearest
+                                    }
+                                }
+                            }
+                    }
+                }
                
                LinearGradient(
                    gradient: Gradient(stops: [
                         .init(color: .white.opacity(0.00), location: 0.00),
                         .init(color: .white.opacity(0.30), location: 0.20),
                         .init(color: .white.opacity(0.60), location: 0.50),
-                        //.init(color: .white.opacity(0.95), location: 1.00)
                         .init(color: .white.opacity(0.85), location: 1.00)
                    ]),
                    startPoint: .leading,
                    endPoint: .trailing
                )
                .blendMode(.destinationOut)
+               .allowsHitTesting(false)
                .frame(height: 175, alignment: .top)
+               
+               
             }
             .frame(maxHeight: .infinity)
             .compositingGroup()
+            .overlay {
+                if pf.isLoading && pf.days.isEmpty {
+                    ProgressView()
+                }
+            }
             
             HStack(spacing: 12) {
                 
@@ -177,6 +222,11 @@ struct ContentView: View {
                 await pf.loadFromHealthKit()
             } catch {
                 print("HealthKit-Fehler:", error.localizedDescription)
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await pf.loadFromHealthKit() }
             }
         }
         

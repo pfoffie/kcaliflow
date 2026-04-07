@@ -72,18 +72,38 @@ struct kcaliWidgetEntryView : View {
         
         ZStack {
             GeometryReader { geo in
-                let anchor = ((geo.size.width + geo.size.height) / 2) // todaysMinCalsGoal
+                let anchor = ((geo.size.width + geo.size.height) / 2)
                 
-                let todaysMinCalsGoal:CGFloat = CGFloat(entry.todaysMinCalsGoal)
-                let todaysCals:CGFloat = CGFloat(entry.todaysCals)
-                let aplGoal:CGFloat = CGFloat(entry.aplGoal)
-                let goal:CGFloat = CGFloat(entry.goal)
+                let p_avgCals = CGFloat(entry.avgCals) / CGFloat(entry.goal)
+                
+                let c_goal = anchor
+                let c_avgCals = anchor * p_avgCals
                 
                 
+                Circle()
+                    .stroke(style: StrokeStyle(lineWidth: 2))
+                    .foregroundStyle(Color.green)
+                    .frame(width: c_goal, height: c_goal)
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                
+                if(p_avgCals < 1.0){
+                    Circle()
+                        .fill(Color.orange.opacity(0.5))
+                        .frame(width: c_avgCals, height: c_avgCals)
+                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                }else{
+                    Circle()
+                        .fill(Color.green.opacity(0.5))
+                        .frame(width: c_avgCals, height: c_avgCals)
+                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                }
+                
+                /*
                 let c_aplGoal = anchor * (aplGoal / todaysMinCalsGoal)
                 let c_goal = anchor * (goal / todaysMinCalsGoal)
                 
                 let c_kcal = anchor * (todaysCals / todaysMinCalsGoal)
+                
                 
                 Circle()
                     .fill(Color.red.opacity(0.5))
@@ -115,6 +135,8 @@ struct kcaliWidgetEntryView : View {
                     .foregroundStyle(Color.green)
                     .frame(width: c_goal, height: c_goal)
                     .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                 
+                 */
                 
                 
                 

@@ -35,6 +35,7 @@ class PFHealth: ObservableObject {
     private let summaryType = HKObjectType.activitySummaryType()
     
     private var fetching:Int = 0
+    @Published var isLoading: Bool = true
     
     @Published var days: [Day] = []
     @Published var goal: Int = 500 {
@@ -194,10 +195,10 @@ class PFHealth: ObservableObject {
     
     @MainActor
     func loadFromHealthKit() async {
+        guard fetching == 0 else { return }
         fetching = 1
         do {
             NSLog("loadFromHealthKit")
-            try await requestAuthorization()
             let rows = try await fetchDailyEnergy(last: maxDays)
             
             aplDays.removeAll()
@@ -215,7 +216,9 @@ class PFHealth: ObservableObject {
             recompute()
         } catch {
             NSLog("HealthKit error: \(error)")
+            fetching = 0
         }
+        isLoading = false
     }
     
     func fetchMoveGoal() async throws -> Int {
@@ -243,6 +246,8 @@ class PFHealth: ObservableObject {
     }
     
     func startObservingEnergy() {
+        // Prevent registering multiple observers across repeated requestAuthorization calls
+        guard energyObserverQuery == nil else { return }
         energyObserverQuery = HKObserverQuery(sampleType: energyType, predicate: nil) { [weak self] _, completion, error in
             guard error == nil else {
                 completion()
