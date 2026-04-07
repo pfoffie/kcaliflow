@@ -308,7 +308,8 @@ class PFHealth: ObservableObject {
             avgCals: avgCals,
             goal: goal,
             todaysCals: todaysCals,
-            todaysMinCalsGoal: todaysMinCalsGoal
+            todaysMinCalsGoal: todaysMinCalsGoal,
+            rollingDays: rollingDays
         )
         WidgetCenter.shared.reloadAllTimelines()
     }

@@ -7,54 +7,150 @@
 
 import WidgetKit
 import SwiftUI
+import HealthKit
+
+// MARK: - Computation helpers (mirrors PFHealth logic)
+
+private func autoHalfLife(daysCount N: Int, endRatio r: Double = 0.5) -> Double {
+    guard N > 1, r > 0, r < 1 else { return 1 }
+    return Double(N - 1) / log2(1.0 / r)
+}
+
+private func weightedAverageCals(halfLife: Double, days: [Int]) -> Int {
+    let N = days.count
+    guard N >= 2 else { return 0 }
+    func w(_ i: Int) -> Double { pow(0.5, Double(i) / halfLife) }
+    var wSum = 0.0, weighted = 0.0
+    for i in 0..<N {
+        let wi = w(i)
+        wSum += wi
+        weighted += wi * Double(days[i])
+    }
+    return Int(round(weighted / wSum))
+}
+
+private func requiredCalsToday(goal: Double, halfLife: Double, days: [Int]) -> Int {
+    let N = days.count
+    guard N >= 2 else { return 0 }
+    func w(_ i: Int) -> Double { pow(0.5, Double(i) / halfLife) }
+    var wSum = 0.0, pastWeighted = 0.0
+    for i in 1..<N {
+        let wi = w(i)
+        wSum += wi
+        pastWeighted += wi * Double(days[i])
+    }
+    let w0 = w(0)
+    let x = (goal * (w0 + wSum) - pastWeighted) / w0
+    return max(0, Int(round(x)))
+}
+
+// MARK: - Timeline Provider
 
 struct Provider: TimelineProvider {
+    private let store = HKHealthStore()
+
     func placeholder(in context: Context) -> KcaliEntry {
-        let r = SharedStore.read();
-        return KcaliEntry(date: Date(),
-                          aplGoal: r.aplGoal,
-                          minCals: r.minCals,
-                          avgCals: r.avgCals,
-                          goal: r.goal,
-                          todaysCals: r.todaysCals,
-                          todaysMinCalsGoal: r.todaysMinCalsGoal)
+        KcaliEntry(from: SharedStore.read())
     }
 
     func getSnapshot(in context: Context, completion: @escaping (KcaliEntry) -> ()) {
-        let r = SharedStore.read();
-        let entry = KcaliEntry(date: Date(),
-                               aplGoal: r.aplGoal,
-                               minCals: r.minCals,
-                               avgCals: r.avgCals,
-                               goal: r.goal,
-                               todaysCals: r.todaysCals,
-                               todaysMinCalsGoal: r.todaysMinCalsGoal
-                    )
-        completion(entry)
+        completion(KcaliEntry(from: SharedStore.read()))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [KcaliEntry] = []
-        
-        let r = SharedStore.read();
-        let currentDate = Date()
-        entries.append(KcaliEntry(date: currentDate,
-                                  aplGoal: r.aplGoal,
-                                  minCals: r.minCals,
-                                  avgCals: r.avgCals,
-                                  goal: r.goal,
-                                  todaysCals: r.todaysCals,
-                                  todaysMinCalsGoal: r.todaysMinCalsGoal))
-        
-        let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
-        let timeline = Timeline(entries: entries, policy: .after(next))
-        completion(timeline)
+    func getTimeline(in context: Context, completion: @escaping (Timeline<KcaliEntry>) -> ()) {
+        Task {
+            let entry = await fetchLiveEntry()
+            let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
+            completion(Timeline(entries: [entry], policy: .after(next)))
+        }
     }
 
-//    func relevances() async -> WidgetRelevances<Void> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
+    // MARK: - Live HealthKit fetch
+
+    private func fetchLiveEntry() async -> KcaliEntry {
+        let shared = SharedStore.read()
+        do {
+            let cal = Calendar.current
+            let today = cal.startOfDay(for: Date())
+            let maxDays = 30
+
+            let summaries = try await fetchActivitySummaries(last: maxDays)
+            var calsByDate: [Date: Int] = [:]
+            for (date, kcal) in summaries {
+                calsByDate[cal.startOfDay(for: date)] = kcal
+            }
+
+            // Build chronological array (index 0 = oldest, last = today)
+            var aplDays: [Int] = []
+            for i in 0..<maxDays {
+                let date = cal.date(byAdding: .day, value: -(maxDays - 1 - i), to: today)!
+                aplDays.append(calsByDate[date] ?? 0)
+            }
+
+            let todaysCals = aplDays.last ?? 0
+            let minCals = aplDays.dropLast().filter { $0 > 0 }.min() ?? 0
+            let aplGoal = try await fetchMoveGoal()
+            let goal = shared.goal
+
+            // Slice to rollingDays and reverse so index 0 = today (matches PFHealth)
+            let days = Array(Array(aplDays.suffix(shared.rollingDays)).reversed())
+
+            let h = autoHalfLife(daysCount: days.count, endRatio: 0.1)
+            let avgCals = weightedAverageCals(halfLife: h, days: days)
+            let todaysMinCalsGoal = requiredCalsToday(goal: Double(goal), halfLife: h, days: days)
+
+            return KcaliEntry(date: Date(), aplGoal: aplGoal, minCals: minCals,
+                              avgCals: avgCals, goal: goal,
+                              todaysCals: todaysCals, todaysMinCalsGoal: todaysMinCalsGoal)
+        } catch {
+            // Fall back to last values written by the main app
+            return KcaliEntry(from: shared)
+        }
+    }
+
+    private func fetchActivitySummaries(last n: Int) async throws -> [(date: Date, kcal: Int)] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
+        var start = cal.dateComponents([.year, .month, .day], from: startDate)
+        start.calendar = cal
+        var end = cal.dateComponents([.year, .month, .day], from: today)
+        end.calendar = cal
+        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
+                if let error = error { return cont.resume(throwing: error) }
+                let result: [(Date, Int)] = (summaries ?? []).compactMap { s in
+                    guard let date = cal.date(from: s.dateComponents(for: cal)) else { return nil }
+                    let kcal = s.activeEnergyBurned.doubleValue(for: .kilocalorie())
+                    return (date, Int(round(kcal)))
+                }.sorted { $0.0 < $1.0 }
+                cont.resume(returning: result)
+            }
+            store.execute(q)
+        }
+    }
+
+    private func fetchMoveGoal() async throws -> Int {
+        let cal = Calendar.current
+        let now = Date()
+        var start = cal.dateComponents([.year, .month, .day], from: cal.startOfDay(for: now))
+        start.calendar = cal
+        var end = cal.dateComponents([.year, .month, .day], from: now)
+        end.calendar = cal
+        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
+                if let error = error { return cont.resume(throwing: error) }
+                guard let s = summaries?.first else { return cont.resume(returning: 0) }
+                cont.resume(returning: Int(s.activeEnergyBurnedGoal.doubleValue(for: .kilocalorie()).rounded()))
+            }
+            store.execute(q)
+        }
+    }
 }
+
+// MARK: - Entry
 
 struct KcaliEntry: TimelineEntry {
     let date: Date
@@ -65,6 +161,16 @@ struct KcaliEntry: TimelineEntry {
     let todaysCals: Int
     let todaysMinCalsGoal: Int
 }
+
+private extension KcaliEntry {
+    init(from r: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int)) {
+        self.init(date: Date(), aplGoal: r.aplGoal, minCals: r.minCals,
+                  avgCals: r.avgCals, goal: r.goal,
+                  todaysCals: r.todaysCals, todaysMinCalsGoal: r.todaysMinCalsGoal)
+    }
+}
+
+// MARK: - View
 
 struct kcaliWidgetEntryView : View {
     var entry: Provider.Entry
@@ -125,7 +231,7 @@ struct kcaliWidgetEntryView : View {
                 
                 if(entry.aplGoal > entry.todaysMinCalsGoal){
                     VStack {
-                        Text("")
+                        Text("")
                         Text("\(entry.todaysCals) / \(entry.aplGoal)")
                         
                         Text("ø \(entry.avgCals) / \(entry.goal)")
@@ -181,4 +287,3 @@ struct kcaliWidget: Widget {
                todaysCals: 666,
                todaysMinCalsGoal: 555)
 }
-

@@ -13,6 +13,7 @@ enum SharedKeys {
     static let goal              = "goal"
     static let todaysCals        = "todaysCals"
     static let todaysMinCalsGoal = "todaysMinCalsGoal"
+    static let rollingDays       = "rollingDays"
 }
 
 struct SharedStore {
@@ -24,17 +25,16 @@ struct SharedStore {
         avgCals: Int,
         goal: Int,
         todaysCals: Int,
-        todaysMinCalsGoal: Int
+        todaysMinCalsGoal: Int,
+        rollingDays: Int
     ) {
-        
         defaults.set(aplGoal, forKey: SharedKeys.aplGoal)
         defaults.set(minCals, forKey: SharedKeys.minCals)
         defaults.set(avgCals, forKey: SharedKeys.avgCals)
         defaults.set(goal, forKey: SharedKeys.goal)
         defaults.set(todaysCals, forKey: SharedKeys.todaysCals)
         defaults.set(todaysMinCalsGoal, forKey: SharedKeys.todaysMinCalsGoal)
-        
-        
+        defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
     }
 
     static func read() -> (
@@ -43,15 +43,18 @@ struct SharedStore {
         avgCals: Int,
         goal: Int,
         todaysCals: Int,
-        todaysMinCalsGoal: Int
+        todaysMinCalsGoal: Int,
+        rollingDays: Int
     ) {
+        let storedRollingDays = defaults.integer(forKey: SharedKeys.rollingDays)
         return (
             defaults.integer(forKey: SharedKeys.aplGoal),
             defaults.integer(forKey: SharedKeys.minCals),
             defaults.integer(forKey: SharedKeys.avgCals),
             defaults.integer(forKey: SharedKeys.goal),
             defaults.integer(forKey: SharedKeys.todaysCals),
-            defaults.integer(forKey: SharedKeys.todaysMinCalsGoal)
+            defaults.integer(forKey: SharedKeys.todaysMinCalsGoal),
+            storedRollingDays > 0 ? storedRollingDays : 7
         )
     }
 }

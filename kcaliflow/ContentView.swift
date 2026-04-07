@@ -139,7 +139,7 @@ struct ContentView: View {
                     .frame(height: 200)
                     .padding(.horizontal, -16)
                     .chartYScale(domain: lower...upper)
-                    .chartXScale(range: .plotDimension(padding:30))
+                    .chartXScale(range: .plotDimension(startPadding: 30, endPadding: 0))
                     .chartXAxis(.hidden)
                     .chartYAxis(.hidden)
                     .chartForegroundStyleScale(
@@ -194,7 +194,7 @@ struct ContentView: View {
                 if let sel = selectedDay {
                     let date = Calendar.current.date(byAdding: .day, value: -sel.day, to: Date()) ?? Date()
                     VStack(spacing: 2) {
-                        Text(date.formatted(date: .abbreviated, time: .omitted))
+                        Text(date.formatted(date: .numeric, time: .omitted))
                             .font(.caption2)
                         Text("\(sel.cals) kcal")
                             .font(.caption2.bold())
