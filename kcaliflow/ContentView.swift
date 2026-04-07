@@ -120,8 +120,9 @@ struct ContentView: View {
                         }
                     }
                     .frame(height: 200)
+                    .padding(.horizontal, -16)
                     .chartYScale(domain: lower...upper)
-                    .chartXScale(range: .plotDimension(padding:40))
+                    .chartXScale(range: .plotDimension(padding:30))
                     .chartXAxis(.hidden)
                     .chartYAxis(.hidden)
                     .chartForegroundStyleScale(
@@ -168,6 +169,7 @@ struct ContentView: View {
                     .blendMode(.destinationOut)
                     .allowsHitTesting(false)
                     .frame(height: 200)
+                    .padding(.horizontal, -16)
                 }
                 .compositingGroup()
 
