@@ -96,60 +96,53 @@ struct kcaliWidgetEntryView : View {
                         .fill(Color.green.opacity(0.5))
                         .frame(width: c_avgCals, height: c_avgCals)
                         .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    if(entry.aplGoal > entry.todaysMinCalsGoal){
+                        
+                        let p_todaysCals = CGFloat(entry.todaysCals) / CGFloat(entry.aplGoal)
+                        if(p_todaysCals < 1.0){
+                            
+                            let c_todayCals = anchor * p_todaysCals
+                            
+                            
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: c_todayCals, height: c_todayCals)
+                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                            Circle()
+                                .fill(Color.pink.opacity(0.5))
+                                .frame(width: c_todayCals, height: c_todayCals)
+                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                            
+                            
+                            Circle()
+                                .stroke(style: StrokeStyle(lineWidth: 2))
+                                .foregroundStyle(Color.red)
+                                .frame(width: c_goal, height: c_goal)
+                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                        }
+                    }
                 }
                 
-                /*
-                let c_aplGoal = anchor * (aplGoal / todaysMinCalsGoal)
-                let c_goal = anchor * (goal / todaysMinCalsGoal)
-                
-                let c_kcal = anchor * (todaysCals / todaysMinCalsGoal)
-                
-                
-                Circle()
-                    .fill(Color.red.opacity(0.5))
-                    .frame(width: c_aplGoal, height: c_aplGoal)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                
-                
-                
-                
-                Circle()
-                    .fill(Color.yellow)
-                    .frame(width: c_kcal, height: c_kcal)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                
-                
-                Circle()
-                    .fill(Color.pink.opacity(0.2))
-                    .frame(width: anchor, height: anchor)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                
-                Circle()
-                    .stroke(style: StrokeStyle(lineWidth: 2))
-                    .foregroundStyle(Color.pink)
-                    .frame(width: anchor, height: anchor)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                
-                Circle()
-                    .stroke(style: StrokeStyle(lineWidth: 2))
-                    .foregroundStyle(Color.green)
-                    .frame(width: c_goal, height: c_goal)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                 
-                 */
-                
-                
-                
-
-                // Your content on top
-                VStack {
-                    //Text("\(entry.date, format: .dateTime.hour().minute().second())")
-                    Text("\(entry.todaysCals) / \(entry.todaysMinCalsGoal)")
+                if(entry.aplGoal > entry.todaysMinCalsGoal){
+                    VStack {
+                        Text("")
+                        Text("\(entry.todaysCals) / \(entry.aplGoal)")
+                        
+                        Text("ø \(entry.avgCals) / \(entry.goal)")
+                            .font(.caption2)
+                        Text(" ")
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     
-                    Text("ø \(entry.avgCals) / \(entry.goal)")
-                        .font(.caption2)
+                }else{
+                    VStack {
+                        Text("\(entry.todaysCals) / \(entry.todaysMinCalsGoal)")
+                        
+                        Text("ø \(entry.avgCals) / \(entry.goal)")
+                            .font(.caption2)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
 
@@ -179,11 +172,11 @@ struct kcaliWidget: Widget {
     kcaliWidget()
 } timeline: {
     KcaliEntry(date: .now,
-               aplGoal: 444,
+               aplGoal: 555,
                minCals: 666,
-               avgCals: 777,
+               avgCals: 999,
                goal: 888,
-               todaysCals: 333,
+               todaysCals: 666,
                todaysMinCalsGoal: 555)
 }
 

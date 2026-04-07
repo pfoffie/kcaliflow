@@ -13,6 +13,7 @@ struct ContentView: View {
     @StateObject private var pf = PFHealth()
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedDay: Day? = nil
+    @State private var tooltipPos: CGPoint = .zero
     
     var body: some View {
         
@@ -62,123 +63,135 @@ struct ContentView: View {
             }
             
             
-            ZStack{
-                Chart {
-                    
-                    if(pf.aplGoal > lower){
+            ZStack {
+                // Inner compositing group: chart + right-fade gradient
+                ZStack {
+                    Chart {
+                        // Red block spanning full chart width
+                        if(pf.aplGoal > lower){
+                            RectangleMark(
+                                yStart: .value("Baseline", lower),
+                                yEnd:   .value("Minimum Heute", pf.aplGoal)
+                            )
+                            .foregroundStyle(Color.red.opacity(0.3))
+                        }
+
+                        // Durchschnittsziel
+                        RuleMark(y: .value("Durchschnittsziel", pf.goal))
+                            .symbol(by: .value("Serie", "Durchschnittsziel"))
+                            .foregroundStyle(by: .value("Serie", "Durchschnittsziel"))
+
+                        // Minimum Heute
+                        RuleMark(y: .value("Minimum Heute", pf.todaysMinCalsGoal))
+                            .lineStyle(.init(lineWidth: 1))
+                            .symbol(by: .value("Serie", "Minimum Heute"))
+                            .foregroundStyle(by: .value("Serie", "Minimum Heute"))
+
+                        // Pink gradient band spanning full chart width
                         RectangleMark(
-                            xStart: .value("Start", pf.days.first?.day ?? 0),
-                            xEnd:   .value("Ende",  pf.days.last?.day  ?? 0),
                             yStart: .value("Baseline", lower),
-                            yEnd:   .value("Minimum Heute", pf.aplGoal)
+                            yEnd:   .value("Minimum Heute", pf.todaysMinCalsGoal)
                         )
-                        .foregroundStyle(Color.red.opacity(0.3))
-                    }
-                    
-                    // Durchschnittsziel
-                    RuleMark(y: .value("Durchschnittsziel", pf.goal))
-                        .symbol(by: .value("Serie", "Durchschnittsziel"))
-                        .foregroundStyle(by: .value("Serie", "Durchschnittsziel"))
-                    
-                    // Minimum Heute
-                    RuleMark(y: .value("Minimum Heute", pf.todaysMinCalsGoal))
-                        .lineStyle(.init(lineWidth: 1))
-                        .symbol(by: .value("Serie", "Minimum Heute"))
-                        .foregroundStyle(by: .value("Serie", "Minimum Heute"))
-                    
-                    RectangleMark(
-                        xStart: .value("Start", pf.days.first?.day ?? 0),
-                        xEnd:   .value("Ende",  pf.days.last?.day  ?? 0),
-                        yStart: .value("Baseline", lower),
-                        yEnd:   .value("Minimum Heute", pf.todaysMinCalsGoal)
-                    )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.pink.opacity(0.55), .pink.opacity(0.0)],
-                            startPoint: .top,
-                            endPoint: .bottom
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.pink.opacity(0.55), .pink.opacity(0.0)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
-                    
-                    // Kalorien
-                    
-                    ForEach (pf.days) { day in
-                        LineMark(
-                            x: .value("Tag", day.day),
-                            y: .value("Kalorien", day.cals)
-                        )
-                        .symbol(by: .value("Serie", "Kalorien"))
-                        .foregroundStyle(by: .value("Serie", "Kalorien"))
-                        .interpolationMethod(.monotone)
-                    }
-                    
-                    // Callout for tapped triangle
-                    if let sel = selectedDay {
-                        PointMark(
-                            x: .value("Tag", sel.day),
-                            y: .value("Kalorien", sel.cals)
-                        )
-                        .foregroundStyle(Color.yellow)
-                        .annotation(position: .top, spacing: 4) {
-                            Text("\(sel.cals) kcal")
-                                .font(.caption2.bold())
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 3)
-                                .background(Color.yellow.opacity(0.9))
-                                .foregroundColor(.black)
-                                .cornerRadius(4)
+
+                        // Kalorien
+                        ForEach (pf.days) { day in
+                            LineMark(
+                                x: .value("Tag", day.day),
+                                y: .value("Kalorien", day.cals)
+                            )
+                            .symbol(by: .value("Serie", "Kalorien"))
+                            .foregroundStyle(by: .value("Serie", "Kalorien"))
+                            .interpolationMethod(.monotone)
+                        }
+
+                        // Selected day dot (no annotation — tooltip is rendered outside compositingGroup)
+                        if let sel = selectedDay {
+                            PointMark(
+                                x: .value("Tag", sel.day),
+                                y: .value("Kalorien", sel.cals)
+                            )
+                            .foregroundStyle(Color.yellow)
                         }
                     }
-                    
-                    
-                }
-                .padding(.trailing, 1)
-                .frame(height: 200)
-                .chartYScale(domain: lower...upper)
-                // Push data points inward so the last triangle isn't clipped by the gradient
-                .chartXScale(range: .plotDimension(padding: 20))
-                .chartXAxis(.hidden)
-                .chartYAxis(.hidden)
-                .chartForegroundStyleScale(
-                    domain: styleScaleDomains,
-                    range: styleScaleRanges
-                )
-                .chartOverlay { proxy in
-                    GeometryReader { geo in
-                        Rectangle()
-                            .fill(.clear)
-                            .contentShape(Rectangle())
-                            .onTapGesture { location in
-                                let origin = geo[proxy.plotAreaFrame].origin
-                                let relativeX = location.x - origin.x
-                                if let dayVal: Int = proxy.value(atX: relativeX, as: Int.self) {
-                                    let nearest = pf.days.min(by: { abs($0.day - dayVal) < abs($1.day - dayVal) })
-                                    withAnimation(.easeInOut(duration: 0.15)) {
-                                        selectedDay = (selectedDay?.id == nearest?.id) ? nil : nearest
+                    .padding(.trailing, 1)
+                    .frame(height: 200)
+                    .chartYScale(domain: lower...upper)
+                    // Push data points inward so the last triangle isn't clipped by the gradient
+                    .chartXScale(range: .plotDimension(padding: 20))
+                    .chartXAxis(.hidden)
+                    .chartYAxis(.hidden)
+                    .chartForegroundStyleScale(
+                        domain: styleScaleDomains,
+                        range: styleScaleRanges
+                    )
+                    .chartOverlay { proxy in
+                        GeometryReader { geo in
+                            Rectangle()
+                                .fill(.clear)
+                                .contentShape(Rectangle())
+                                .onTapGesture { location in
+                                    let origin = geo[proxy.plotAreaFrame].origin
+                                    let relativeX = location.x - origin.x
+                                    if let dayVal: Int = proxy.value(atX: relativeX, as: Int.self) {
+                                        let nearest = pf.days.min(by: { abs($0.day - dayVal) < abs($1.day - dayVal) })
+                                        guard let nearest else { return }
+                                        if selectedDay?.id == nearest.id {
+                                            withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nil }
+                                        } else {
+                                            if let xp = proxy.position(forX: nearest.day),
+                                               let yp = proxy.position(forY: nearest.cals) {
+                                                tooltipPos = CGPoint(x: origin.x + xp, y: origin.y + yp)
+                                            }
+                                            withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nearest }
+                                        }
                                     }
                                 }
-                            }
+                        }
                     }
+
+                    // Gradient covers full chart height
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .white.opacity(0.00), location: 0.00),
+                            .init(color: .white.opacity(0.30), location: 0.20),
+                            .init(color: .white.opacity(0.60), location: 0.50),
+                            .init(color: .white.opacity(0.85), location: 1.00)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .blendMode(.destinationOut)
+                    .allowsHitTesting(false)
+                    .frame(height: 200)
                 }
-               
-               LinearGradient(
-                   gradient: Gradient(stops: [
-                        .init(color: .white.opacity(0.00), location: 0.00),
-                        .init(color: .white.opacity(0.30), location: 0.20),
-                        .init(color: .white.opacity(0.60), location: 0.50),
-                        .init(color: .white.opacity(0.85), location: 1.00)
-                   ]),
-                   startPoint: .leading,
-                   endPoint: .trailing
-               )
-               .blendMode(.destinationOut)
-               .allowsHitTesting(false)
-               .frame(height: 175, alignment: .top)
-               
-               
+                .compositingGroup()
+
+                // Tooltip rendered outside compositingGroup — unaffected by the fade gradient
+                if let sel = selectedDay {
+                    let date = Calendar.current.date(byAdding: .day, value: -sel.day, to: Date()) ?? Date()
+                    VStack(spacing: 2) {
+                        Text(date.formatted(date: .abbreviated, time: .omitted))
+                            .font(.caption2)
+                        Text("\(sel.cals) kcal")
+                            .font(.caption2.bold())
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.yellow.opacity(0.9))
+                    .foregroundColor(.black)
+                    .cornerRadius(4)
+                    .position(x: tooltipPos.x, y: max(24, tooltipPos.y - 40))
+                    .allowsHitTesting(false)
+                }
             }
-            .frame(maxHeight: .infinity)
-            .compositingGroup()
+            .frame(height: 200)
             .overlay {
                 if pf.isLoading && pf.days.isEmpty {
                     ProgressView()
