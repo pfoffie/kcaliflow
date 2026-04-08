@@ -1,0 +1,82 @@
+//
+//  Localizable.strings
+//  kcaliflow
+//
+//  Created by René Jossen on 22.10.2025.
+//
+
+"info_rest_kcal" = "Faltan {kcal} KCAL";
+"info_made_kcal_sofar" = "Logrado hasta ahora: {kcal} KCAL";
+"info_made_kcal" = "¡{kcal} KCAL conseguidas!";
+"info_rest_steps" = "Faltan {kcal} pasos";
+"info_made_steps_sofar" = "Logrado hasta ahora: {kcal} pasos";
+"info_made_steps" = "¡{kcal} pasos conseguidos!";
+
+"info_goal_today" = "Meta de hoy: {kcal} KCAL";
+"info_curr_average" = "Promedio actual: {kcal} KCAL";
+"info_goal_today_steps" = "Meta de hoy: {kcal} pasos";
+"info_curr_average_steps" = "Promedio actual: {kcal} pasos";
+"info_aplGoal_today" = " Meta de Fitness aún no alcanzada.";
+
+"setting_goal_kcal" = "Meta de calorías:";
+"setting_goal_steps" = "Meta de pasos:";
+"setting_tracking_mode" = "Modo";
+"mode_calories" = "Calorías";
+"mode_steps" = "Pasos";
+"setting_avg_days" = "Promedio de {days} días";
+"note_apple_fitness" = " Meta de Fitness: {goal} KCAL\nRecomendamos una meta de calorías que puedas alcanzar de forma fiable. (En tu caso {min} KCAL)";
+
+"info_widget_description" = "Muestra tu progreso de calorías y tus metas como widget.";
+
+"legend_calories" = "Calorías";
+"legend_steps" = "Pasos";
+"legend_minToday" = "Mínimo de Hoy";
+"legend_avgGoal" = "Meta Promedio";
+
+"button_done" = "OK";
+
+// MARK: – Onboarding
+
+"onboarding_welcome_title" = "kcaliflow";
+"onboarding_welcome_tagline" = "Menos presión. Más libertad.";
+"onboarding_welcome_body" = "kcaliflow calcula un promedio ponderado de tus actividades. No tienes que rendir al máximo cada día: si hoy haces más, mañana puedes tomarte un descanso.";
+
+"onboarding_btn_next" = "Siguiente";
+"onboarding_btn_start" = "¡Empecemos!";
+
+"onboarding_goal_title" = "Tu Meta";
+"onboarding_goal_subtitle" = "¿Cuánta actividad quieres promediar por día?";
+"onboarding_goal_how_title" = "¿Cómo funciona?";
+"onboarding_goal_how_body_1" = "Tu meta es un **promedio** a lo largo de varios días, no una obligación diaria. Si hoy quemas 1.000 kcal con una meta de 500 kcal, mañana puedes descansar y seguirás dentro del objetivo.";
+"onboarding_goal_how_body_2" = "Lo especial: los días más antiguos pierden peso con el tiempo. Cuanto más atrás, menos influencia. El esfuerzo de hoy **se desvanece con el tiempo**, dándote siempre nuevo margen.";
+
+"onboarding_fitness_title" = "Meta de Apple Fitness";
+"onboarding_fitness_subtitle" = "Para que tus rachas no se rompan.";
+"onboarding_fitness_why_title" = "¿Por qué lo necesitas?";
+"onboarding_fitness_why_body" = "La app Fitness comprueba diariamente si has alcanzado tu meta de actividad, en eso se basan tus rachas. kcaliflow te muestra cuánto deberías quemar **como mínimo hoy** para mantener tu promedio ponderado.";
+"onboarding_fitness_lock_title" = "¿Por qué kcaliflow no puede establecerlo automáticamente?";
+"onboarding_fitness_lock_body" = "Apple no permite que las apps cambien la meta de actividad de la app Fitness. Debes ajustarlo allí manualmente.";
+"onboarding_fitness_tip_title" = "Nuestra Recomendación";
+"onboarding_fitness_tip_body" = "Elige un número que puedas alcanzar **en un día normal**. En días excepcionales, como un día de descanso, puedes bajar la meta manualmente en la app Fitness.";
+
+// MARK: – Info Page
+
+"info_page_nav_title" = "Acerca de kcaliflow";
+
+"info_page_concept_title" = "¿Cómo funciona kcaliflow?";
+"info_page_concept_body" = "kcaliflow calcula un **promedio ponderado** de tus actividades diarias. Los días más recientes cuentan más que los antiguos, por lo que un día especialmente activo hoy ya tiene menos influencia mañana y vuelves a ganar margen automáticamente.";
+
+"info_page_chart_title" = "El Gráfico";
+"info_page_chart_calories" = "Calorías – tus valores diarios";
+"info_page_chart_min" = "Mínimo de Hoy – lo que necesitas como mínimo hoy";
+"info_page_chart_avg" = "Meta Promedio – tu promedio objetivo";
+"info_page_chart_body" = "Toca un punto del gráfico para ver la fecha y el valor calórico. La zona rosa muestra el área por debajo de tu mínimo diario.";
+
+"info_page_min_title" = "¿Qué es el «Mínimo de Hoy»?";
+"info_page_min_body" = "Es la cantidad de calorías que debes quemar hoy para que tu promedio ponderado coincida exactamente con tu meta. Si quemas más, el mínimo de mañana baja. Si quemas menos, sube ligeramente.";
+
+"info_page_settings_title" = "Ajustes";
+"info_page_settings_body" = "**Meta de calorías** – tu promedio diario ponderado objetivo en kcal.\n\n**Promedio de N días** – cuántos días se calculan en el promedio. Más días significan más margen, pero también una adaptación más lenta.";
+
+"info_page_fitness_title" = "Meta de Apple Fitness";
+"info_page_fitness_body" = "kcaliflow lee tu meta de actividad actual de la app Fitness. Como Apple no permite que las apps cambien este valor, solo te mostramos si ya lo has alcanzado. El «Mínimo de Hoy» se basa en tu meta de kcaliflow, no en la meta de Fitness.";

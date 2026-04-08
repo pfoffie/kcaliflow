@@ -1,0 +1,9 @@
+//
+//  InfoPlist.strings
+//  kcaliflow
+//
+//  Created by René Jossen on 22.10.2025.
+//
+
+
+"NSHealthShareUsageDescription" = "Para mostrar las calorías quemadas hoy y en días anteriores, y calcular un promedio y una meta calórica diaria a partir de ellas.";

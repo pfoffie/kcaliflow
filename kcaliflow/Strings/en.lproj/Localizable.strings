@@ -1,0 +1,82 @@
+//
+//  Localizable.strings
+//  kcaliflow
+//
+//  Created by René Jossen on 22.10.2025.
+//
+
+"info_rest_kcal" = "{kcal} KCAL remaining";
+"info_made_kcal_sofar" = "Achieved so far: {kcal} KCAL";
+"info_made_kcal" = "{kcal} KCAL done!";
+"info_rest_steps" = "{kcal} steps remaining";
+"info_made_steps_sofar" = "Achieved so far: {kcal} steps";
+"info_made_steps" = "{kcal} steps done!";
+
+"info_goal_today" = "Today's goal: {kcal} KCAL";
+"info_curr_average" = "Current average: {kcal} KCAL";
+"info_goal_today_steps" = "Today's goal: {kcal} steps";
+"info_curr_average_steps" = "Current average: {kcal} steps";
+"info_aplGoal_today" = " Fitness goal not yet reached.";
+
+"setting_goal_kcal" = "Calorie goal:";
+"setting_goal_steps" = "Step goal:";
+"setting_tracking_mode" = "Mode";
+"mode_calories" = "Calories";
+"mode_steps" = "Steps";
+"setting_avg_days" = "Average over {days} days";
+"note_apple_fitness" = " Fitness goal: {goal} KCAL\nWe recommend a calorie goal you can reliably reach. (In your case {min} KCAL)";
+
+"info_widget_description" = "Shows your calorie progress and goals as a widget.";
+
+"legend_calories" = "Calories";
+"legend_steps" = "Steps";
+"legend_minToday" = "Today's Minimum";
+"legend_avgGoal" = "Average Goal";
+
+"button_done" = "OK";
+
+// MARK: – Onboarding
+
+"onboarding_welcome_title" = "kcaliflow";
+"onboarding_welcome_tagline" = "Less pressure. More freedom.";
+"onboarding_welcome_body" = "kcaliflow calculates a weighted average of your activities. You don't have to perform at your best every day: if you do more today, you can take it easy tomorrow.";
+
+"onboarding_btn_next" = "Next";
+"onboarding_btn_start" = "Let's go!";
+
+"onboarding_goal_title" = "Your Goal";
+"onboarding_goal_subtitle" = "How much activity do you want to average per day?";
+"onboarding_goal_how_title" = "How does it work?";
+"onboarding_goal_how_body_1" = "Your goal is an **average** over several days – not a daily must. If you burn 1,000 kcal today with a goal of 500 kcal, you can rest tomorrow and still be on track.";
+"onboarding_goal_how_body_2" = "The special part: older days lose weight over time. The further back, the less influence. Today's effort **fades over time** – giving you room to breathe again and again.";
+
+"onboarding_fitness_title" = "Apple Fitness Goal";
+"onboarding_fitness_subtitle" = "So your streaks don't break.";
+"onboarding_fitness_why_title" = "Why do you need this?";
+"onboarding_fitness_why_body" = "The Fitness app checks daily whether you've reached your activity goal – your streaks are based on this. kcaliflow shows you how much you should burn **today at minimum** to maintain your weighted average.";
+"onboarding_fitness_lock_title" = "Why can't kcaliflow set this automatically?";
+"onboarding_fitness_lock_body" = "Apple does not allow apps to change the activity goal in the Fitness app. You need to adjust it there manually.";
+"onboarding_fitness_tip_title" = "Our Recommendation";
+"onboarding_fitness_tip_body" = "Choose a number you can reach **on a normal day**. On exceptional days – like a rest day – you can manually lower the goal in the Fitness app.";
+
+// MARK: – Info Page
+
+"info_page_nav_title" = "About kcaliflow";
+
+"info_page_concept_title" = "How does kcaliflow work?";
+"info_page_concept_body" = "kcaliflow calculates a **weighted average** of your daily activities. More recent days count more than older ones – so a particularly active day today already has less influence tomorrow, and you automatically gain room again.";
+
+"info_page_chart_title" = "The Chart";
+"info_page_chart_calories" = "Calories – your daily values";
+"info_page_chart_min" = "Today's Minimum – what you need at least today";
+"info_page_chart_avg" = "Average Goal – your target average";
+"info_page_chart_body" = "Tap a point in the chart to show the date and calorie value. The pink area shows the zone below your daily minimum.";
+
+"info_page_min_title" = "What is the «Today's Minimum»?";
+"info_page_min_body" = "This is the amount of calories you need to burn today so that your weighted average exactly matches your goal. If you burn more, tomorrow's minimum decreases. If you burn less, it rises slightly.";
+
+"info_page_settings_title" = "Settings";
+"info_page_settings_body" = "**Calorie goal** – your target weighted daily average in kcal.\n\n**Average over N days** – how many days the average is calculated over. More days mean more buffer, but also slower adjustment.";
+
+"info_page_fitness_title" = "Apple Fitness Goal";
+"info_page_fitness_body" = "kcaliflow reads your current activity goal from the Fitness app. Since Apple does not allow apps to change this value, we only show you whether you've already reached it. The «Today's Minimum» is based on your kcaliflow goal – not the Fitness goal.";
