@@ -48,3 +48,25 @@
 "onboarding_fitness_lock_body" = "Apple erlaubt es Apps nicht, das Bewegungsziel der Fitness-App zu verändern. Du musst es dort manuell anpassen.";
 "onboarding_fitness_tip_title" = "Unsere Empfehlung";
 "onboarding_fitness_tip_body" = "Wähle eine Zahl, die du **an einem normalen Tag** erreichst. An Ausnahmetagen – etwa einem Ruhetag – kannst du das Ziel in der Fitness-App manuell senken.";
+
+// MARK: – Info Page
+
+"info_page_nav_title" = "Über kcaliflow";
+
+"info_page_concept_title" = "Wie funktioniert kcaliflow?";
+"info_page_concept_body" = "kcaliflow berechnet einen **gewichteten Durchschnitt** deiner täglich verbrannten aktiven Kalorien. Neuere Tage zählen mehr als ältere – so hat ein besonders aktiver Tag von heute morgen schon weniger Einfluss, und du gewinnst automatisch wieder Spielraum.";
+
+"info_page_chart_title" = "Der Chart";
+"info_page_chart_calories" = "Kalorien – deine täglichen Werte";
+"info_page_chart_min" = "Minimum Heute – was du heute mindestens brauchst";
+"info_page_chart_avg" = "Durchschnittsziel – dein angestrebter Durchschnitt";
+"info_page_chart_body" = "Tippe auf einen Punkt im Chart, um Datum und Kalorienwert anzuzeigen. Der pinke Bereich zeigt die Zone unterhalb deines Tagesminimums.";
+
+"info_page_min_title" = "Was ist das «Minimum Heute»?";
+"info_page_min_body" = "Das ist die Kalorienmenge, die du heute verbrennen musst, damit dein gewichteter Durchschnitt genau deinem Ziel entspricht. Verbrennst du mehr, sinkt das Minimum für morgen. Verbrennst du weniger, steigt es leicht an.";
+
+"info_page_settings_title" = "Einstellungen";
+"info_page_settings_body" = "**Kalorienziel** – dein angestrebter gewichteter Tagesdurchschnitt in kcal.\n\n**Durchschnitt aus N Tagen** – über wie viele Tage der Durchschnitt berechnet wird. Mehr Tage bedeuten mehr Puffer, aber auch trägere Anpassung.";
+
+"info_page_fitness_title" = "Apple Fitness Ziel";
+"info_page_fitness_body" = "kcaliflow liest dein aktuelles Bewegungsziel aus der Fitness-App. Da Apple es Apps nicht erlaubt, diesen Wert zu ändern, zeigen wir dir nur, ob du es bereits erreicht hast. Das «Minimum Heute» orientiert sich an deinem kcaliflow-Ziel – nicht am Fitness-Ziel.";

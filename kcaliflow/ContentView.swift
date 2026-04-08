@@ -14,6 +14,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedDay: Day? = nil
     @State private var tooltipPos: CGPoint = .zero
+    @State private var showInfo = false
     #if os(iOS)
     @FocusState private var goalFieldFocused: Bool
     #endif
@@ -33,6 +34,17 @@ struct ContentView: View {
         let upper: Int = Int(maxY + pad)
                 
         VStack(spacing: 16) {
+            
+            HStack {
+                Spacer()
+                Button {
+                    showInfo = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+            }
             
             Spacer()
             
@@ -269,6 +281,7 @@ struct ContentView: View {
                 .font(.footnote)
         }
         .padding()
+        .sheet(isPresented: $showInfo) { InfoView() }
         .task {
             do {
                 try await pf.requestAuthorization()
