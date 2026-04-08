@@ -10,19 +10,30 @@ import Combine
 import HealthKit
 import WidgetKit
 
+enum TrackingMode: String {
+    case calories, steps
+}
+
 struct Day: Identifiable {
     let id = UUID()
     let day: Int
     let cals: Int
 }
 
-private let goalKey = "goal_kcal"
+private let goalKey = "goal_kcal" // legacy compatibility key
+private let caloriesGoalKey = "goal_kcal_mode_calories"
+private let stepsGoalKey = "goal_kcal_mode_steps"
 private let daysKey = "average_days"
+private let modeKey = "tracking_mode"
+
+private let defaultCaloriesGoal = 500
+private let defaultStepsGoal   = 10_000
 
 
 class PFHealth: ObservableObject {
     private var energyObserverQuery: HKObserverQuery?
-    
+    private var stepsObserverQuery: HKObserverQuery?
+
     public let maxDays = 30; // this many days are the maximum to be set in the average
     public var aplGoal: Int = 500
     private var aplDays: [Day] = []
@@ -32,7 +43,20 @@ class PFHealth: ObservableObject {
     
     private let store = HKHealthStore()
     private let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
+    private let stepsType  = HKObjectType.quantityType(forIdentifier: .stepCount)!
     private let summaryType = HKObjectType.activitySummaryType()
+
+    @Published var trackingMode: TrackingMode = .calories {
+        didSet {
+            guard oldValue != trackingMode else { return }
+            UserDefaults.standard.set(trackingMode.rawValue, forKey: modeKey)
+            goal = persistedGoal(for: trackingMode)
+            aplGoal = 0
+            loadData()
+        }
+    }
+
+    var unitLabel: String { trackingMode == .steps ? "Steps" : "kcal" }
     
     private var fetching:Int = 0
     private var pendingReload = false
@@ -42,6 +66,7 @@ class PFHealth: ObservableObject {
     @Published var goal: Int = 500 {
         didSet {
             UserDefaults.standard.set(goal, forKey: goalKey)
+            UserDefaults.standard.set(goal, forKey: goalStorageKey(for: trackingMode))
             recompute()
         }
     }
@@ -66,16 +91,42 @@ class PFHealth: ObservableObject {
         if let stored = UserDefaults.standard.object(forKey: daysKey) as? Int {
             rollingDays = stored
         }
-        
-        loadData()
-        
-        if let stored = UserDefaults.standard.object(forKey: goalKey) as? Int {
-            goal = stored
+
+        if let storedMode = UserDefaults.standard.string(forKey: modeKey),
+           let mode = TrackingMode(rawValue: storedMode) {
+            trackingMode = mode
         }
+
+        goal = persistedGoal(for: trackingMode)
+
+        loadData()
         
         if type == "widget" {
             mirrorFromSharedStore()
         }
+    }
+
+    private func goalStorageKey(for mode: TrackingMode) -> String {
+        mode == .steps ? stepsGoalKey : caloriesGoalKey
+    }
+
+    private func defaultGoal(for mode: TrackingMode) -> Int {
+        mode == .steps ? defaultStepsGoal : defaultCaloriesGoal
+    }
+
+    private func persistedGoal(for mode: TrackingMode) -> Int {
+        let modeKey = goalStorageKey(for: mode)
+        if let stored = UserDefaults.standard.object(forKey: modeKey) as? Int {
+            return stored
+        }
+
+        // Migrate old single goal value to calories mode.
+        if mode == .calories,
+           let legacy = UserDefaults.standard.object(forKey: goalKey) as? Int {
+            return legacy
+        }
+
+        return defaultGoal(for: mode)
     }
     
     func loadData() {
@@ -163,11 +214,12 @@ class PFHealth: ObservableObject {
         }
         
         // Welche Daten wollen wir lesen
-        let toRead: Set = [energyType, summaryType]
+        let toRead: Set<HKObjectType> = [energyType, stepsType, summaryType]
         
         // Anfrage an HealthKit (nur Lesen)
         try await store.requestAuthorization(toShare: [], read: toRead)
         startObservingEnergy()
+        startObservingSteps()
     }
     
     func fetchActivitySummaries(last n: Int) async throws -> [(date: Date, kcal: Int)] {
@@ -204,29 +256,33 @@ class PFHealth: ObservableObject {
         }
         fetching = 1
         do {
-            NSLog("loadFromHealthKit")
+            NSLog("loadFromHealthKit mode=\(trackingMode.rawValue)")
             let cal = Calendar.current
             let today = cal.startOfDay(for: Date())
 
-            let summaries = try await fetchActivitySummaries(last: maxDays)
-            var calsByDate: [Date: Int] = [:]
-            for (date, kcal) in summaries {
-                calsByDate[cal.startOfDay(for: date)] = kcal
+            let dailyValues: [Date: Int]
+            if trackingMode == .steps {
+                dailyValues = try await fetchStepsByDay(last: maxDays)
+                aplGoal = 0
+            } else {
+                let summaries = try await fetchActivitySummaries(last: maxDays)
+                var map: [Date: Int] = [:]
+                for (date, kcal) in summaries { map[cal.startOfDay(for: date)] = kcal }
+                dailyValues = map
+                let goal = try await fetchMoveGoal()
+                self.aplGoal = Int(goal)
             }
 
             aplDays.removeAll()
             for i in 0..<maxDays {
                 let date = cal.date(byAdding: .day, value: -(maxDays - 1 - i), to: today)!
-                let kcal = calsByDate[date] ?? 0
-                aplDays.append(Day(day: maxDays - i - 1, cals: kcal))
+                let value = dailyValues[cal.startOfDay(for: date)] ?? 0
+                aplDays.append(Day(day: maxDays - i - 1, cals: value))
             }
 
             self.todaysCals = self.aplDays.last?.cals ?? 0
             self.minCals = self.aplDays.dropLast().map(\.cals).min() ?? 0
-            
-            let goal = try await fetchMoveGoal()
-            self.aplGoal = Int(goal)
-            
+
             self.days = Array(self.aplDays.suffix(self.rollingDays))
             
             recompute()
@@ -235,6 +291,36 @@ class PFHealth: ObservableObject {
             fetching = 0
         }
         isLoading = false
+    }
+
+    func fetchStepsByDay(last n: Int) async throws -> [Date: Int] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
+        let anchorDate = cal.startOfDay(for: startDate)
+        let interval = DateComponents(day: 1)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKStatisticsCollectionQuery(
+                quantityType: stepsType,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: anchorDate,
+                intervalComponents: interval
+            )
+            q.initialResultsHandler = { _, results, error in
+                if let error = error { return cont.resume(throwing: error) }
+                var map: [Date: Int] = [:]
+                results?.enumerateStatistics(from: startDate, to: today) { stats, _ in
+                    let steps = stats.sumQuantity()?.doubleValue(for: HKUnit.count()) ?? 0
+                    map[cal.startOfDay(for: stats.startDate)] = Int(round(steps))
+                }
+                cont.resume(returning: map)
+            }
+            store.execute(q)
+        }
     }
     
     func fetchMoveGoal() async throws -> Int {
@@ -262,38 +348,52 @@ class PFHealth: ObservableObject {
     }
     
     func startObservingEnergy() {
-        // Prevent registering multiple observers across repeated requestAuthorization calls
         guard energyObserverQuery == nil else { return }
         energyObserverQuery = HKObserverQuery(sampleType: energyType, predicate: nil) { [weak self] _, completion, error in
             guard error == nil else {
                 completion()
                 return
             }
-            
-            if(self?.fetching == 0){
+            if self?.fetching == 0 {
                 Task {
-                    NSLog("ObserveNew")
                     await self?.loadFromHealthKit()
-                    completion() // wichtig! sonst keine weiteren Updates
+                    completion()
                 }
-            }else{
-                Task {
-                    NSLog("ObserveIdle \(await self?.fetching ?? -1)")
-                    completion() // wichtig! sonst keine weiteren Updates
-                }
+            } else {
+                completion()
             }
         }
 
         if let q = energyObserverQuery {
             store.execute(q)
         }
+        store.enableBackgroundDelivery(for: energyType, frequency: .immediate) { _, _ in }
+    }
 
-        // Option: Hintergrundzustellung aktivieren
-        store.enableBackgroundDelivery(for: energyType, frequency: .immediate) { success, error in
-            if !success {
-                print("Background delivery error: \(error?.localizedDescription ?? "unknown")")
+    func startObservingSteps() {
+        guard stepsObserverQuery == nil else { return }
+        stepsObserverQuery = HKObserverQuery(sampleType: stepsType, predicate: nil) { [weak self] _, completion, error in
+            guard error == nil else {
+                completion()
+                return
+            }
+            guard self?.trackingMode == .steps else {
+                completion()
+                return
+            }
+            if self?.fetching == 0 {
+                Task {
+                    await self?.loadFromHealthKit()
+                    completion()
+                }
+            } else {
+                completion()
             }
         }
+        if let q = stepsObserverQuery {
+            store.execute(q)
+        }
+        store.enableBackgroundDelivery(for: stepsType, frequency: .immediate) { _, _ in }
     }
     
     
@@ -301,7 +401,6 @@ class PFHealth: ObservableObject {
     // widget things
     
     private func mirrorToWidget() {
-        //NSLog("mirrorToWidget")
         SharedStore.write(
             aplGoal: aplGoal,
             minCals: minCals,
@@ -309,18 +408,21 @@ class PFHealth: ObservableObject {
             goal: goal,
             todaysCals: todaysCals,
             todaysMinCalsGoal: todaysMinCalsGoal,
-            rollingDays: rollingDays
+            rollingDays: rollingDays,
+            trackingMode: trackingMode.rawValue
         )
         WidgetCenter.shared.reloadAllTimelines()
     }
     
     func mirrorFromSharedStore() {
-        let r = SharedStore.read();
+        let r = SharedStore.read()
         self.aplGoal =      r.aplGoal
         self.minCals =      r.minCals
         self.avgCals =      r.avgCals
         self.goal =         r.goal
         self.todaysCals =   r.todaysCals
+        if let mode = TrackingMode(rawValue: r.trackingMode) {
+            self.trackingMode = mode
+        }
     }
 }
-

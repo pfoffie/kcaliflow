@@ -69,27 +69,34 @@ struct Provider: TimelineProvider {
 
     private func fetchLiveEntry() async -> KcaliEntry {
         let shared = SharedStore.read()
+        let isSteps = shared.trackingMode == "steps"
         do {
             let cal = Calendar.current
             let today = cal.startOfDay(for: Date())
             let maxDays = 30
 
-            let summaries = try await fetchActivitySummaries(last: maxDays)
-            var calsByDate: [Date: Int] = [:]
-            for (date, kcal) in summaries {
-                calsByDate[cal.startOfDay(for: date)] = kcal
+            let dailyValues: [Date: Int]
+            let aplGoal: Int
+            if isSteps {
+                dailyValues = try await fetchStepsByDay(last: maxDays)
+                aplGoal = 0
+            } else {
+                let summaries = try await fetchActivitySummaries(last: maxDays)
+                var map: [Date: Int] = [:]
+                for (date, kcal) in summaries { map[cal.startOfDay(for: date)] = kcal }
+                dailyValues = map
+                aplGoal = try await fetchMoveGoal()
             }
 
             // Build chronological array (index 0 = oldest, last = today)
             var aplDays: [Int] = []
             for i in 0..<maxDays {
                 let date = cal.date(byAdding: .day, value: -(maxDays - 1 - i), to: today)!
-                aplDays.append(calsByDate[date] ?? 0)
+                aplDays.append(dailyValues[cal.startOfDay(for: date)] ?? 0)
             }
 
             let todaysCals = aplDays.last ?? 0
             let minCals = aplDays.dropLast().filter { $0 > 0 }.min() ?? 0
-            let aplGoal = try await fetchMoveGoal()
             let goal = shared.goal
 
             // Slice to rollingDays and reverse so index 0 = today (matches PFHealth)
@@ -101,10 +108,40 @@ struct Provider: TimelineProvider {
 
             return KcaliEntry(date: Date(), aplGoal: aplGoal, minCals: minCals,
                               avgCals: avgCals, goal: goal,
-                              todaysCals: todaysCals, todaysMinCalsGoal: todaysMinCalsGoal)
+                              todaysCals: todaysCals, todaysMinCalsGoal: todaysMinCalsGoal,
+                              isSteps: isSteps)
         } catch {
             // Fall back to last values written by the main app
             return KcaliEntry(from: shared)
+        }
+    }
+
+    private func fetchStepsByDay(last n: Int) async throws -> [Date: Int] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
+        let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
+        let interval = DateComponents(day: 1)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKStatisticsCollectionQuery(
+                quantityType: stepsType,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: cal.startOfDay(for: startDate),
+                intervalComponents: interval
+            )
+            q.initialResultsHandler = { _, results, error in
+                if let error = error { return cont.resume(throwing: error) }
+                var map: [Date: Int] = [:]
+                results?.enumerateStatistics(from: startDate, to: today) { stats, _ in
+                    let steps = stats.sumQuantity()?.doubleValue(for: HKUnit.count()) ?? 0
+                    map[cal.startOfDay(for: stats.startDate)] = Int(round(steps))
+                }
+                cont.resume(returning: map)
+            }
+            store.execute(q)
         }
     }
 
@@ -160,13 +197,15 @@ struct KcaliEntry: TimelineEntry {
     let goal: Int
     let todaysCals: Int
     let todaysMinCalsGoal: Int
+    let isSteps: Bool
 }
 
 private extension KcaliEntry {
-    init(from r: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int)) {
+    init(from r: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String)) {
         self.init(date: Date(), aplGoal: r.aplGoal, minCals: r.minCals,
                   avgCals: r.avgCals, goal: r.goal,
-                  todaysCals: r.todaysCals, todaysMinCalsGoal: r.todaysMinCalsGoal)
+                  todaysCals: r.todaysCals, todaysMinCalsGoal: r.todaysMinCalsGoal,
+                  isSteps: r.trackingMode == "steps")
     }
 }
 
@@ -229,7 +268,7 @@ struct kcaliWidgetEntryView : View {
                     }
                 }
                 
-                if(entry.aplGoal > entry.todaysMinCalsGoal){
+                if(entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps){
                     VStack {
                         Text("")
                         Text("\(entry.todaysCals) / \(entry.aplGoal)")
@@ -285,5 +324,6 @@ struct kcaliWidget: Widget {
                avgCals: 999,
                goal: 888,
                todaysCals: 666,
-               todaysMinCalsGoal: 555)
+               todaysMinCalsGoal: 555,
+               isSteps: false)
 }

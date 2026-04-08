@@ -20,9 +20,9 @@ struct ContentView: View {
     #endif
     
     var body: some View {
-        
-        
-        let styleScaleDomains = ["Kalorien", "Minimum Heute" , "Durchschnittsziel"]
+        let isStepsMode = pf.trackingMode == .steps
+        let primarySeriesLabel = String(localized: isStepsMode ? "legend_steps" : "legend_calories")
+        let styleScaleDomains = [primarySeriesLabel, String(localized: "legend_minToday"), String(localized: "legend_avgGoal")]
         let styleScaleRanges = [Color.yellow, Color.pink, Color.green]
         
         let allY = pf.days.map(\.cals) + [pf.goal, pf.todaysMinCalsGoal]
@@ -53,29 +53,29 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 if(pf.todaysCals < pf.todaysMinCalsGoal) {
                     Text(
-                        String(localized: "info_rest_kcal")
+                        String(localized: isStepsMode ? "info_rest_steps" : "info_rest_kcal")
                         .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysMinCalsGoal - pf.todaysCals)")
                     )
                     .font(.title)
                     
                     Text(
-                        String(localized: "info_made_kcal_sofar")
+                        String(localized: isStepsMode ? "info_made_steps_sofar" : "info_made_kcal_sofar")
                         .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysCals)")
                     )
                 }else{
                     Text(
-                        String(localized: "info_made_kcal")
+                        String(localized: isStepsMode ? "info_made_steps" : "info_made_kcal")
                         .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysCals)")
                     )
                         .font(.title)
                 }
             
                 Text(
-                    String(localized: "info_goal_today")
+                    String(localized: isStepsMode ? "info_goal_today_steps" : "info_goal_today")
                     .replacingOccurrences(of: "{kcal}", with: "\(pf.todaysMinCalsGoal)")
                 )
                 Text(
-                    String(localized: "info_curr_average")
+                    String(localized: isStepsMode ? "info_curr_average_steps" : "info_curr_average")
                     .replacingOccurrences(of: "{kcal}", with: "\(pf.avgCals)")
                 )
             }
@@ -83,7 +83,7 @@ struct ContentView: View {
             .background(c_info)
             .cornerRadius(12)
             
-            if(pf.todaysCals < pf.aplGoal || true){
+            if pf.trackingMode == .calories {
                 VStack(spacing: 0) {
                     Text(
                         String(localized: "info_aplGoal_today")
@@ -99,7 +99,7 @@ struct ContentView: View {
                 // Inner compositing group: chart + right-fade gradient
                 ZStack {
                     Chart {
-                        if(pf.aplGoal > lower){
+                        if pf.trackingMode == .calories && pf.aplGoal > lower {
                             RectangleMark(
                                 yStart: .value("Baseline", lower),
                                 yEnd:   .value("Minimum Heute", pf.aplGoal)
@@ -135,10 +135,10 @@ struct ContentView: View {
                         ForEach (pf.days) { day in
                             LineMark(
                                 x: .value("Tag", day.day),
-                                y: .value("Kalorien", day.cals)
+                                y: .value(primarySeriesLabel, day.cals)
                             )
-                            .symbol(by: .value("Serie", "Kalorien"))
-                            .foregroundStyle(by: .value("Serie", "Kalorien"))
+                            .symbol(by: .value("Serie", primarySeriesLabel))
+                            .foregroundStyle(by: .value("Serie", primarySeriesLabel))
                             .interpolationMethod(.monotone)
                         }
 
@@ -211,7 +211,7 @@ struct ContentView: View {
                     VStack(spacing: 2) {
                         Text(date.formatted(date: .numeric, time: .omitted))
                             .font(.caption2)
-                        Text("\(sel.cals) kcal")
+                        Text("\(sel.cals) \(pf.unitLabel)")
                             .font(.caption2.bold())
                     }
                     .padding(.horizontal, 6)
@@ -231,7 +231,7 @@ struct ContentView: View {
             }
             
             HStack(spacing: 14) {
-                Label(String(localized: "legend_calories"), systemImage: "triangle.fill")
+                Label(primarySeriesLabel, systemImage: "triangle.fill")
                     .foregroundStyle(Color.yellow)
                 Label(String(localized: "legend_minToday"), systemImage: "square.fill")
                     .foregroundStyle(Color.pink)
@@ -243,11 +243,23 @@ struct ContentView: View {
             .padding(.top, 6)
             .padding(.horizontal, 6)
             
+            Picker(String(localized: "setting_tracking_mode"), selection: $pf.trackingMode) {
+                Text(String(localized: "mode_calories")).tag(TrackingMode.calories)
+                Text(String(localized: "mode_steps")).tag(TrackingMode.steps)
+            }
+            .pickerStyle(.segmented)
+
             HStack(spacing: 12) {
                 
-                Text(String(localized: "setting_goal_kcal"))
+                Text(pf.trackingMode == .steps
+                     ? String(localized: "setting_goal_steps")
+                     : String(localized: "setting_goal_kcal"))
                 
-                TextField(String(localized: "setting_goal_kcal"), value: $pf.goal, format: .number)
+                TextField(
+                    pf.trackingMode == .steps ? "10000" : "500",
+                    value: $pf.goal,
+                    format: .number
+                )
                     #if os(iOS)
                     .keyboardType(.numberPad)
                     .focused($goalFieldFocused)
@@ -261,10 +273,14 @@ struct ContentView: View {
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: .infinity)
                 
-                Stepper(String(localized: "setting_goal_kcal"),
-                        value: $pf.goal,
-                        in: 0...5000,
-                        step: 5)
+                Stepper(
+                    pf.trackingMode == .steps
+                        ? String(localized: "setting_goal_steps")
+                        : String(localized: "setting_goal_kcal"),
+                    value: $pf.goal,
+                    in: pf.trackingMode == .steps ? 0...50000 : 0...5000,
+                    step: pf.trackingMode == .steps ? 500 : 5
+                )
                 .labelsHidden()
                 
             }
@@ -275,10 +291,12 @@ struct ContentView: View {
                     in: 2...pf.maxDays,
                     step: 1)
         
-            Text(String(localized: "note_apple_fitness")
-                .replacingOccurrences(of: "{goal}", with: "\(pf.aplGoal)")
-                .replacingOccurrences(of: "{min}", with: "\(pf.minCals)"))
-                .font(.footnote)
+            if pf.trackingMode == .calories {
+                Text(String(localized: "note_apple_fitness")
+                    .replacingOccurrences(of: "{goal}", with: "\(pf.aplGoal)")
+                    .replacingOccurrences(of: "{min}", with: "\(pf.minCals)"))
+                    .font(.footnote)
+            }
         }
         .padding()
         .sheet(isPresented: $showInfo) { InfoView() }
@@ -303,4 +321,3 @@ struct ContentView: View {
     ContentView()
         .environmentObject(PFHealth())
 }
-

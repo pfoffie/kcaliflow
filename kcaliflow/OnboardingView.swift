@@ -76,10 +76,18 @@ struct OnboardingView: View {
                     }
 
                     VStack(spacing: 16) {
+                        Picker(String(localized: "setting_tracking_mode"), selection: $pf.trackingMode) {
+                            Text(String(localized: "mode_calories")).tag(TrackingMode.calories)
+                            Text(String(localized: "mode_steps")).tag(TrackingMode.steps)
+                        }
+                        .pickerStyle(.segmented)
+
                         HStack(spacing: 12) {
-                            Text(String(localized: "setting_goal_kcal"))
+                            Text(pf.trackingMode == .steps
+                                 ? String(localized: "setting_goal_steps")
+                                 : String(localized: "setting_goal_kcal"))
                             TextField(
-                                "500",
+                                pf.trackingMode == .steps ? "10000" : "500",
                                 value: $pf.goal,
                                 format: .number
                             )
@@ -104,8 +112,8 @@ struct OnboardingView: View {
                             Stepper(
                                 "",
                                 value: $pf.goal,
-                                in: 0...5000,
-                                step: 5
+                                in: pf.trackingMode == .steps ? 0...50000 : 0...5000,
+                                step: pf.trackingMode == .steps ? 500 : 5
                             )
                             .labelsHidden()
                         }

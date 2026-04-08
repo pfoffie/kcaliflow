@@ -8,18 +8,28 @@
 "info_rest_kcal" = "Noch {kcal} KCAL";
 "info_made_kcal_sofar" = "Bisher erreicht: {kcal} KCAL";
 "info_made_kcal" = "{kcal} KCAL geschafft!";
+"info_rest_steps" = "Noch {kcal} Schritte";
+"info_made_steps_sofar" = "Bisher erreicht: {kcal} Schritte";
+"info_made_steps" = "{kcal} Schritte geschafft!";
 
 "info_goal_today" = "Ziel heute: {kcal} KCAL";
 "info_curr_average" = "Aktueller Durchschnitt: {kcal} KCAL";
+"info_goal_today_steps" = "Ziel heute: {kcal} Schritte";
+"info_curr_average_steps" = "Aktueller Durchschnitt: {kcal} Schritte";
 "info_aplGoal_today" = " Fitness Ziel noch nicht erreicht.";
 
 "setting_goal_kcal" = "Kalorienziel:";
+"setting_goal_steps" = "Schritteziel:";
+"setting_tracking_mode" = "Modus";
+"mode_calories" = "Kalorien";
+"mode_steps" = "Schritte";
 "setting_avg_days" = "Durchschnitt aus {days} Tagen";
 "note_apple_fitness" = " Fitness Ziel: {goal} KCAL\nWir empfehlen ein Kalorienziel, das du zuverlässig erreichst. (In deinem Fall {min} KCAL)";
 
 "info_widget_description" = "Zeigt deinen Kalorienfortschritt und deine Ziele als Widget.";
 
 "legend_calories" = "Kalorien";
+"legend_steps" = "Schritte";
 "legend_minToday" = "Minimum Heute";
 "legend_avgGoal" = "Durchschnittsziel";
 
