@@ -7,6 +7,9 @@
 
 import SwiftUI
 import Charts
+#if os(iOS)
+import UIKit
+#endif
 
 
 struct ContentView: View {
@@ -85,10 +88,15 @@ struct ContentView: View {
             
             if pf.trackingMode == .calories {
                 VStack(spacing: 0) {
-                    Text(
-                        String(localized: "info_aplGoal_today")
-                        .replacingOccurrences(of: "{kcal}", with: "\(pf.aplGoal)")
-                    )
+                    Button {
+                        openFitnessToday()
+                    } label: {
+                        Text(
+                            String(localized: "info_aplGoal_today")
+                                .replacingOccurrences(of: "{kcal}", with: "\(pf.aplGoal)")
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
                 .foregroundStyle(Color.pink)
             }
@@ -292,10 +300,22 @@ struct ContentView: View {
                     step: 1)
         
             if pf.trackingMode == .calories {
-                Text(String(localized: "note_apple_fitness")
-                    .replacingOccurrences(of: "{goal}", with: "\(pf.aplGoal)")
-                    .replacingOccurrences(of: "{min}", with: "\(pf.minCals)"))
-                    .font(.footnote)
+                Button {
+                    openFitnessToday()
+                } label: {
+                    Text(String(localized: "note_apple_fitness")
+                        .replacingOccurrences(of: "{goal}", with: "\(pf.aplGoal)")
+                        .replacingOccurrences(of: "{min}", with: "\(pf.minCals)"))
+                        .font(.footnote)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.trailing, 18)
+                }
+                .buttonStyle(.plain)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "arrow.up.right.square.fill")
+                        .font(.caption)
+                        .foregroundStyle(.pink)
+                }
             }
         }
         .padding()
@@ -315,6 +335,36 @@ struct ContentView: View {
         }
         
     }
+}
+
+private extension ContentView {
+    func openFitnessToday() {
+        #if os(iOS)
+        let candidateURLs = [
+            "fitnessapp://today",
+            "fitnessapp://",
+            "x-apple-fitness://today",
+            "x-apple-fitness://"
+        ]
+        openFitnessURL(candidateURLs, at: 0)
+        #endif
+    }
+
+    #if os(iOS)
+    func openFitnessURL(_ candidates: [String], at index: Int) {
+        guard index < candidates.count else { return }
+        guard let url = URL(string: candidates[index]) else {
+            openFitnessURL(candidates, at: index + 1)
+            return
+        }
+
+        UIApplication.shared.open(url, options: [:]) { opened in
+            if !opened {
+                openFitnessURL(candidates, at: index + 1)
+            }
+        }
+    }
+    #endif
 }
 
 #Preview {

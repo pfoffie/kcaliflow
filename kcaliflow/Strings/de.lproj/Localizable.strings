@@ -39,13 +39,13 @@
 
 "onboarding_welcome_title" = "kcaliflow";
 "onboarding_welcome_tagline" = "Weniger Druck. Mehr Freiheit.";
-"onboarding_welcome_body" = "kcaliflow bildet einen gewichteten Durchschnitt deiner aktiven Kalorien. Du musst nicht jeden Tag Höchstleistung bringen – verbrennst du heute mehr, darfst du morgen kürzertreten.";
+"onboarding_welcome_body" = "kcaliflow bildet einen gewichteten Durchschnitt deiner Aktivitäten. Du musst nicht jeden Tag Höchstleistung bringen: tust du heute mehr, darfst du morgen kürzertreten.";
 
 "onboarding_btn_next" = "Weiter";
 "onboarding_btn_start" = "Los geht's!";
 
 "onboarding_goal_title" = "Dein Ziel";
-"onboarding_goal_subtitle" = "Wie viele kcal möchtest du im Durchschnitt pro Tag verbrennen?";
+"onboarding_goal_subtitle" = "Wie viel Aktivität möchtest du im Durchschnitt pro Tag?";
 "onboarding_goal_how_title" = "Wie funktioniert das?";
 "onboarding_goal_how_body_1" = "Dein Ziel ist ein **Durchschnitt** über mehrere Tage – kein tägliches Muss. Verbrennst du heute 1'000 kcal bei einem Ziel von 500 kcal, kannst du morgen pausieren und liegst trotzdem im Soll.";
 "onboarding_goal_how_body_2" = "Das Besondere: Ältere Tage verlieren an Gewicht. Je weiter zurück, desto weniger Einfluss. Der Effekt von heute **verblasst mit der Zeit** – und gibt dir immer wieder neuen Spielraum.";
@@ -64,7 +64,7 @@
 "info_page_nav_title" = "Über kcaliflow";
 
 "info_page_concept_title" = "Wie funktioniert kcaliflow?";
-"info_page_concept_body" = "kcaliflow berechnet einen **gewichteten Durchschnitt** deiner täglich verbrannten aktiven Kalorien. Neuere Tage zählen mehr als ältere – so hat ein besonders aktiver Tag von heute morgen schon weniger Einfluss, und du gewinnst automatisch wieder Spielraum.";
+"info_page_concept_body" = "kcaliflow berechnet einen **gewichteten Durchschnitt** deiner täglichen Aktivitäten. Neuere Tage zählen mehr als ältere – so hat ein besonders aktiver Tag von heute morgen schon weniger Einfluss, und du gewinnst automatisch wieder Spielraum.";
 
 "info_page_chart_title" = "Der Chart";
 "info_page_chart_calories" = "Kalorien – deine täglichen Werte";
