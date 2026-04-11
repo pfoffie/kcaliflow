@@ -60,7 +60,11 @@ struct Provider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<KcaliEntry>) -> ()) {
         Task {
             let entry = await fetchLiveEntry()
-            let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
+            let calendar = Calendar.current
+            let now = Date()
+            let nextQuarter = 15 - (calendar.component(.minute, from: now) % 15)
+            let roundedNow = calendar.date(bySetting: .second, value: 0, of: now) ?? now
+            let next = calendar.date(byAdding: .minute, value: max(nextQuarter, 1), to: roundedNow) ?? now.addingTimeInterval(15 * 60)
             completion(Timeline(entries: [entry], policy: .after(next)))
         }
     }
@@ -365,18 +369,46 @@ private struct WatchCircularComplicationView: View {
     let entry: KcaliEntry
 
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.gray.opacity(0.55), lineWidth: 1.5)
-                .padding(1)
+        GeometryReader { geo in
+            let anchor = (geo.size.width + geo.size.height) / 2
+            let avgProgress = CGFloat(entry.avgCals) / CGFloat(max(entry.goal, 1))
+            let averageDiameter = anchor * avgProgress
 
-            Circle()
-                .stroke(Color.green.opacity(0.95), lineWidth: 3)
-                .padding(7)
+            ZStack {
+                Circle()
+                    .stroke(style: StrokeStyle(lineWidth: 2))
+                    .foregroundStyle(Color.green)
+                    .frame(width: anchor, height: anchor)
 
-            Circle()
-                .fill(Color.yellow.opacity(0.95))
-                .padding(13)
+                if avgProgress < 1.0 {
+                    Circle()
+                        .fill(Color.orange.opacity(0.5))
+                        .frame(width: averageDiameter, height: averageDiameter)
+                } else {
+                    Circle()
+                        .fill(Color.green.opacity(0.5))
+                        .frame(width: averageDiameter, height: averageDiameter)
+
+                    if entry.aplGoal > entry.todaysMinCalsGoal {
+                        let todayProgress = CGFloat(entry.todaysCals) / CGFloat(max(entry.aplGoal, 1))
+                        if todayProgress < 1.0 {
+                            let todayDiameter = anchor * todayProgress
+
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: todayDiameter, height: todayDiameter)
+                            Circle()
+                                .fill(Color.pink.opacity(0.5))
+                                .frame(width: todayDiameter, height: todayDiameter)
+                            Circle()
+                                .stroke(style: StrokeStyle(lineWidth: 2))
+                                .foregroundStyle(Color.red)
+                                .frame(width: anchor, height: anchor)
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
@@ -388,23 +420,27 @@ private struct WatchRectangularComplicationView: View {
         HStack(spacing: 8) {
             ZStack {
                 Capsule()
-                    .stroke(Color.green.opacity(0.95), lineWidth: 2)
+                    .stroke(Color.gray.opacity(0.45), lineWidth: 1)
                     .background(
-                        Capsule().fill(Color.black.opacity(0.7))
+                        Capsule().fill(Color.black.opacity(0.82))
                     )
 
                 GeometryReader { geo in
-                    HStack(spacing: 0) {
-                        Capsule()
-                            .fill(entry.isSteps ? Color.pink.opacity(0.95) : Color.pink.opacity(0.95))
-                            .frame(width: max(geo.size.width * entry.progressFraction, 8))
-                        Spacer(minLength: 0)
+                    let innerWidth = max(geo.size.width - 6, 0)
+                    let innerHeight = max(geo.size.height - 6, 0)
+                    let achieved = max(min(entry.progressFraction, 1.0), 0.0)
+
+                    ZStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(Color.pink.opacity(0.95))
+                            .frame(width: innerWidth * achieved, height: innerHeight)
                     }
                 }
                 .padding(3)
+                .clipShape(Capsule())
 
                 Text("\(entry.todaysCals) / \(entry.minimumTarget)")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .regular, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
@@ -413,20 +449,23 @@ private struct WatchRectangularComplicationView: View {
 
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.35))
-
-                Circle()
-                    .stroke(Color.blue.opacity(0.95), lineWidth: 2)
+                    .stroke(Color.blue.opacity(0.95), lineWidth: 1.2)
 
                 Circle()
                     .trim(from: 0, to: entry.standingFraction)
-                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 2, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .padding(2)
 
+                if entry.stoodThisHour {
+                    Circle()
+                        .fill(Color.blue.opacity(0.22))
+                        .padding(5)
+                }
+
                 Text("\(entry.standingHours)")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundStyle(.black)
+                    .font(.system(size: 10, weight: .regular, design: .rounded))
+                    .foregroundStyle(.white)
             }
             .frame(width: 34, height: 34)
             .accessibilityLabel("Standing hours \(entry.standingHours), this hour \(entry.stoodThisHour ? "done" : "not done")")
@@ -477,16 +516,25 @@ private struct WidgetRootView: View {
 
     var body: some View {
         if #available(iOSApplicationExtension 16.0, *) {
-            switch family {
-            case .accessoryCircular:
-                WatchCircularComplicationView(entry: entry)
-            case .accessoryRectangular:
-                WatchRectangularComplicationView(entry: entry)
-            default:
-                if #available(iOS 17.0, *) {
+            if #available(iOSApplicationExtension 17.0, watchOS 10.0, *) {
+                switch family {
+                case .accessoryCircular:
+                    WatchCircularComplicationView(entry: entry)
+                        .containerBackground(for: .widget) { Color.clear }
+                case .accessoryRectangular:
+                    WatchRectangularComplicationView(entry: entry)
+                        .containerBackground(for: .widget) { Color.clear }
+                default:
                     kcaliWidgetEntryView(entry: entry)
                         .containerBackground(.fill.tertiary, for: .widget)
-                } else {
+                }
+            } else {
+                switch family {
+                case .accessoryCircular:
+                    WatchCircularComplicationView(entry: entry)
+                case .accessoryRectangular:
+                    WatchRectangularComplicationView(entry: entry)
+                default:
                     kcaliWidgetEntryView(entry: entry)
                         .padding()
                         .background()
