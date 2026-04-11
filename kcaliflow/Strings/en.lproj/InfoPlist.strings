@@ -7,3 +7,4 @@
 
 
 "NSHealthShareUsageDescription" = "To display your currently and previously burned calories and calculate an average and daily calorie goal from them.";
+"NSHealthUpdateUsageDescription" = "We do not write date into Apple Health.";

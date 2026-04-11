@@ -7,3 +7,4 @@
 
 
 "NSHealthShareUsageDescription" = "Um deine aktuell und in den vergangenen Tagen verbrauchten Kalorien anzuzeigen und daraus einen Durchschnitt sowie ein Tageskalorienziel zu berechnen.";
+"NSHealthUpdateUsageDescription" = "Wir schreiben keine Daten in Apple Health.";

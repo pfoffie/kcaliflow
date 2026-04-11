@@ -7,3 +7,4 @@
 
 
 "NSHealthShareUsageDescription" = "Para mostrar las calorías quemadas hoy y en días anteriores, y calcular un promedio y una meta calórica diaria a partir de ellas.";
+"NSHealthUpdateUsageDescription" = "We do not write date into Apple Health.";

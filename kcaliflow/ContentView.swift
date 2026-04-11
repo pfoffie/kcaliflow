@@ -25,7 +25,9 @@ struct ContentView: View {
     var body: some View {
         let isStepsMode = pf.trackingMode == .steps
         let primarySeriesLabel = String(localized: isStepsMode ? "legend_steps" : "legend_calories")
-        let styleScaleDomains = [primarySeriesLabel, String(localized: "legend_minToday"), String(localized: "legend_avgGoal")]
+        let minTodaySeriesLabel = String(localized: "legend_minToday")
+        let avgGoalSeriesLabel = String(localized: "legend_avgGoal")
+        let styleScaleDomains = [primarySeriesLabel, minTodaySeriesLabel, avgGoalSeriesLabel]
         let styleScaleRanges = [Color.yellow, Color.pink, Color.green]
         
         let allY = pf.days.map(\.cals) + [pf.goal, pf.todaysMinCalsGoal]
@@ -116,15 +118,15 @@ struct ContentView: View {
                         }
 
                         // Durchschnittsziel
-                        RuleMark(y: .value("Durchschnittsziel", pf.goal))
-                            .symbol(by: .value("Serie", "Durchschnittsziel"))
-                            .foregroundStyle(by: .value("Serie", "Durchschnittsziel"))
+                        RuleMark(y: .value(avgGoalSeriesLabel, pf.goal))
+                            .symbol(by: .value("Serie", avgGoalSeriesLabel))
+                            .foregroundStyle(by: .value("Serie", avgGoalSeriesLabel))
 
                         // Minimum Heute
-                        RuleMark(y: .value("Minimum Heute", pf.todaysMinCalsGoal))
+                        RuleMark(y: .value(minTodaySeriesLabel, pf.todaysMinCalsGoal))
                             .lineStyle(.init(lineWidth: 1))
-                            .symbol(by: .value("Serie", "Minimum Heute"))
-                            .foregroundStyle(by: .value("Serie", "Minimum Heute"))
+                            .symbol(by: .value("Serie", minTodaySeriesLabel))
+                            .foregroundStyle(by: .value("Serie", minTodaySeriesLabel))
 
                         // Pink gradient band spanning full chart width
                         RectangleMark(
