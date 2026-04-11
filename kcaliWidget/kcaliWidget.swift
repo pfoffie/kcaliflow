@@ -105,11 +105,16 @@ struct Provider: TimelineProvider {
             let h = autoHalfLife(daysCount: days.count, endRatio: 0.1)
             let avgCals = weightedAverageCals(halfLife: h, days: days)
             let todaysMinCalsGoal = requiredCalsToday(goal: Double(goal), halfLife: h, days: days)
+            let standingProgress = try await fetchStandingProgressToday()
+            let stoodThisHour = try await fetchCurrentHourStandingStatus()
 
             return KcaliEntry(date: Date(), aplGoal: aplGoal, minCals: minCals,
                               avgCals: avgCals, goal: goal,
                               todaysCals: todaysCals, todaysMinCalsGoal: todaysMinCalsGoal,
-                              isSteps: isSteps)
+                              isSteps: isSteps,
+                              standingHours: standingProgress.done,
+                              standingGoal: standingProgress.goal,
+                              stoodThisHour: stoodThisHour)
         } catch {
             // Fall back to last values written by the main app
             return KcaliEntry(from: shared)
@@ -185,6 +190,45 @@ struct Provider: TimelineProvider {
             store.execute(q)
         }
     }
+
+    private func fetchStandingProgressToday() async throws -> (done: Int, goal: Int) {
+        let cal = Calendar.current
+        let now = Date()
+        var start = cal.dateComponents([.year, .month, .day], from: cal.startOfDay(for: now))
+        start.calendar = cal
+        var end = cal.dateComponents([.year, .month, .day], from: now)
+        end.calendar = cal
+        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
+                if let error = error { return cont.resume(throwing: error) }
+                guard let s = summaries?.first else { return cont.resume(returning: (0, 0)) }
+                let done = Int(s.appleStandHours.doubleValue(for: HKUnit.count()).rounded())
+                let goal = Int(s.appleStandHoursGoal.doubleValue(for: HKUnit.count()).rounded())
+                cont.resume(returning: (done, goal))
+            }
+            store.execute(q)
+        }
+    }
+
+    private func fetchCurrentHourStandingStatus() async throws -> Bool {
+        let type = HKCategoryType.categoryType(forIdentifier: .appleStandHour)!
+        let cal = Calendar.current
+        let now = Date()
+        let start = cal.dateInterval(of: .hour, for: now)?.start ?? now
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: now, options: .strictStartDate)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error { return cont.resume(throwing: error) }
+                let stood = (samples as? [HKCategorySample])?.contains {
+                    $0.value == HKCategoryValueAppleStandHour.stood.rawValue
+                } ?? false
+                cont.resume(returning: stood)
+            }
+            store.execute(q)
+        }
+    }
 }
 
 // MARK: - Entry
@@ -198,6 +242,9 @@ struct KcaliEntry: TimelineEntry {
     let todaysCals: Int
     let todaysMinCalsGoal: Int
     let isSteps: Bool
+    let standingHours: Int
+    let standingGoal: Int
+    let stoodThisHour: Bool
 }
 
 private extension KcaliEntry {
@@ -205,7 +252,27 @@ private extension KcaliEntry {
         self.init(date: Date(), aplGoal: r.aplGoal, minCals: r.minCals,
                   avgCals: r.avgCals, goal: r.goal,
                   todaysCals: r.todaysCals, todaysMinCalsGoal: r.todaysMinCalsGoal,
-                  isSteps: r.trackingMode == "steps")
+                  isSteps: r.trackingMode == "steps",
+                  standingHours: 0,
+                  standingGoal: 0,
+                  stoodThisHour: false)
+    }
+
+    var minimumTarget: Int {
+        if isSteps { return max(goal, 1) }
+        return max(todaysMinCalsGoal, 1)
+    }
+
+    var progressFraction: CGFloat {
+        CGFloat(min(Double(todaysCals) / Double(minimumTarget), 1.0))
+    }
+
+    var standingFraction: CGFloat {
+        stoodThisHour ? 1.0 : 0.0
+    }
+
+    var unitLabel: String {
+        isSteps ? "steps" : "kcal"
     }
 }
 
@@ -294,27 +361,146 @@ struct kcaliWidgetEntryView : View {
     }
 }
 
+private struct WatchCircularComplicationView: View {
+    let entry: KcaliEntry
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.gray.opacity(0.55), lineWidth: 1.5)
+                .padding(1)
+
+            Circle()
+                .stroke(Color.green.opacity(0.95), lineWidth: 3)
+                .padding(7)
+
+            Circle()
+                .fill(Color.yellow.opacity(0.95))
+                .padding(13)
+        }
+    }
+}
+
+private struct WatchRectangularComplicationView: View {
+    let entry: KcaliEntry
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ZStack {
+                Capsule()
+                    .stroke(Color.green.opacity(0.95), lineWidth: 2)
+                    .background(
+                        Capsule().fill(Color.black.opacity(0.7))
+                    )
+
+                GeometryReader { geo in
+                    HStack(spacing: 0) {
+                        Capsule()
+                            .fill(entry.isSteps ? Color.pink.opacity(0.95) : Color.pink.opacity(0.95))
+                            .frame(width: max(geo.size.width * entry.progressFraction, 8))
+                        Spacer(minLength: 0)
+                    }
+                }
+                .padding(3)
+
+                Text("\(entry.todaysCals) / \(entry.minimumTarget)")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            .frame(height: 30)
+
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.35))
+
+                Circle()
+                    .stroke(Color.blue.opacity(0.95), lineWidth: 2)
+
+                Circle()
+                    .trim(from: 0, to: entry.standingFraction)
+                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .padding(2)
+
+                Text("\(entry.standingHours)")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(.black)
+            }
+            .frame(width: 34, height: 34)
+            .accessibilityLabel("Standing hours \(entry.standingHours), this hour \(entry.stoodThisHour ? "done" : "not done")")
+        }
+    }
+}
+
 struct kcaliWidget: Widget {
     let kind: String = "kcaliWidget"
 
     var body: some WidgetConfiguration {
+        #if os(watchOS)
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            if #available(iOS 17.0, *) {
-                kcaliWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                kcaliWidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
-            }
+            WidgetRootView(entry: entry)
         }
         .configurationDisplayName("kcaliflow")
         .description(
             String(localized: "info_widget_description")
         )
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular])
+        #else
+        if #available(iOSApplicationExtension 16.0, *) {
+            StaticConfiguration(kind: kind, provider: Provider()) { entry in
+                WidgetRootView(entry: entry)
+            }
+            .configurationDisplayName("kcaliflow")
+            .description(
+                String(localized: "info_widget_description")
+            )
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
+        } else {
+            StaticConfiguration(kind: kind, provider: Provider()) { entry in
+                WidgetRootView(entry: entry)
+            }
+            .configurationDisplayName("kcaliflow")
+            .description(
+                String(localized: "info_widget_description")
+            )
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
+        }
+        #endif
     }
 }
 
+private struct WidgetRootView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: KcaliEntry
+
+    var body: some View {
+        if #available(iOSApplicationExtension 16.0, *) {
+            switch family {
+            case .accessoryCircular:
+                WatchCircularComplicationView(entry: entry)
+            case .accessoryRectangular:
+                WatchRectangularComplicationView(entry: entry)
+            default:
+                if #available(iOS 17.0, *) {
+                    kcaliWidgetEntryView(entry: entry)
+                        .containerBackground(.fill.tertiary, for: .widget)
+                } else {
+                    kcaliWidgetEntryView(entry: entry)
+                        .padding()
+                        .background()
+                }
+            }
+        } else {
+            kcaliWidgetEntryView(entry: entry)
+                .padding()
+                .background()
+        }
+    }
+}
+
+#if os(iOS)
 #Preview(as: .systemSmall) {
     kcaliWidget()
 } timeline: {
@@ -325,5 +511,9 @@ struct kcaliWidget: Widget {
                goal: 888,
                todaysCals: 666,
                todaysMinCalsGoal: 555,
-               isSteps: false)
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: true)
 }
+#endif

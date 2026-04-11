@@ -9,6 +9,9 @@ import Foundation
 import Combine
 import HealthKit
 import WidgetKit
+#if os(iOS)
+import WatchConnectivity
+#endif
 
 enum TrackingMode: String {
     case calories, steps
@@ -45,6 +48,9 @@ class PFHealth: ObservableObject {
     private let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
     private let stepsType  = HKObjectType.quantityType(forIdentifier: .stepCount)!
     private let summaryType = HKObjectType.activitySummaryType()
+    #if os(iOS)
+    private let watchSync = PhoneWatchSyncBridge()
+    #endif
 
     @Published var trackingMode: TrackingMode = .calories {
         didSet {
@@ -100,6 +106,9 @@ class PFHealth: ObservableObject {
         goal = persistedGoal(for: trackingMode)
 
         loadData()
+        #if os(iOS)
+        watchSync.activate()
+        #endif
         
         if type == "widget" {
             mirrorFromSharedStore()
@@ -411,6 +420,18 @@ class PFHealth: ObservableObject {
             rollingDays: rollingDays,
             trackingMode: trackingMode.rawValue
         )
+        #if os(iOS)
+        watchSync.push(
+            aplGoal: aplGoal,
+            minCals: minCals,
+            avgCals: avgCals,
+            goal: goal,
+            todaysCals: todaysCals,
+            todaysMinCalsGoal: todaysMinCalsGoal,
+            rollingDays: rollingDays,
+            trackingMode: trackingMode.rawValue
+        )
+        #endif
         WidgetCenter.shared.reloadAllTimelines()
     }
     
@@ -426,3 +447,34 @@ class PFHealth: ObservableObject {
         }
     }
 }
+
+#if os(iOS)
+private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
+    private let session = WCSession.isSupported() ? WCSession.default : nil
+
+    func activate() {
+        guard let session else { return }
+        session.delegate = self
+        session.activate()
+    }
+
+    func push(aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String) {
+        guard let session else { return }
+        let payload: [String: Any] = [
+            "aplGoal": aplGoal,
+            "minCals": minCals,
+            "avgCals": avgCals,
+            "goal": goal,
+            "todaysCals": todaysCals,
+            "todaysMinCalsGoal": todaysMinCalsGoal,
+            "rollingDays": rollingDays,
+            "trackingMode": trackingMode
+        ]
+        try? session.updateApplicationContext(payload)
+    }
+
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+    func sessionDidDeactivate(_ session: WCSession) { session.activate() }
+}
+#endif
