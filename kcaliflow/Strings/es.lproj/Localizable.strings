@@ -5,15 +5,15 @@
 //  Created by René Jossen on 22.10.2025.
 //
 
-"info_rest_kcal" = "Faltan {kcal} KCAL";
-"info_made_kcal_sofar" = "Logrado hasta ahora: {kcal} KCAL";
-"info_made_kcal" = "¡{kcal} KCAL conseguidas!";
+"info_rest_kcal" = "Faltan {kcal} kcal";
+"info_made_kcal_sofar" = "Logrado hasta ahora: {kcal} kcal";
+"info_made_kcal" = "¡{kcal} kcal conseguidas!";
 "info_rest_steps" = "Faltan {kcal} pasos";
 "info_made_steps_sofar" = "Logrado hasta ahora: {kcal} pasos";
 "info_made_steps" = "¡{kcal} pasos conseguidos!";
 
-"info_goal_today" = "Meta de hoy: {kcal} KCAL";
-"info_curr_average" = "Promedio actual: {kcal} KCAL";
+"info_goal_today" = "Meta de hoy: {kcal} kcal";
+"info_curr_average" = "Promedio actual: {kcal} kcal";
 "info_goal_today_steps" = "Meta de hoy: {kcal} pasos";
 "info_curr_average_steps" = "Promedio actual: {kcal} pasos";
 "info_aplGoal_today" = "Meta de  Fitness aún no alcanzada.";
@@ -24,7 +24,7 @@
 "mode_calories" = "Calorías";
 "mode_steps" = "Pasos";
 "setting_avg_days" = "Promedio de {days} días";
-"note_apple_fitness" = "Meta de  Fitness: {goal} KCAL\nRecomendamos una meta de calorías que puedas alcanzar de forma fiable. (En tu caso {min} KCAL)";
+"note_apple_fitness" = "Meta de  Fitness: {goal} kcal\nRecomendamos una meta de calorías que puedas alcanzar de forma fiable. (En tu caso {min} kcal)";
 
 "info_widget_description" = "Muestra tu progreso de calorías y tus metas como widget.";
 

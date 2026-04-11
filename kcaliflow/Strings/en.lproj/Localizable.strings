@@ -5,15 +5,15 @@
 //  Created by René Jossen on 22.10.2025.
 //
 
-"info_rest_kcal" = "{kcal} KCAL remaining";
-"info_made_kcal_sofar" = "Achieved so far: {kcal} KCAL";
-"info_made_kcal" = "{kcal} KCAL done!";
+"info_rest_kcal" = "{kcal} kcal remaining";
+"info_made_kcal_sofar" = "Achieved so far: {kcal} kcal";
+"info_made_kcal" = "{kcal} kcal done!";
 "info_rest_steps" = "{kcal} steps remaining";
 "info_made_steps_sofar" = "Achieved so far: {kcal} steps";
 "info_made_steps" = "{kcal} steps done!";
 
-"info_goal_today" = "Today's goal: {kcal} KCAL";
-"info_curr_average" = "Current average: {kcal} KCAL";
+"info_goal_today" = "Today's goal: {kcal} kcal";
+"info_curr_average" = "Current average: {kcal} kcal";
 "info_goal_today_steps" = "Today's goal: {kcal} steps";
 "info_curr_average_steps" = "Current average: {kcal} steps";
 "info_aplGoal_today" = " Fitness goal not yet reached.";
@@ -24,7 +24,7 @@
 "mode_calories" = "Calories";
 "mode_steps" = "Steps";
 "setting_avg_days" = "Average over {days} days";
-"note_apple_fitness" = " Fitness goal: {goal} KCAL\nWe recommend a calorie goal you can reliably reach. (In your case {min} KCAL)";
+"note_apple_fitness" = " Fitness goal: {goal} kcal\nWe recommend a calorie goal you can reliably reach. (In your case {min} kcal)";
 
 "info_widget_description" = "Shows your calorie progress and goals as a widget.";
 
