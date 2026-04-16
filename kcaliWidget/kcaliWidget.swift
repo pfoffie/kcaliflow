@@ -9,6 +9,66 @@ import WidgetKit
 import SwiftUI
 import HealthKit
 
+
+// MARK: - Ring Data Structure
+
+enum RingType: String, Codable {
+    case solid
+    case line
+}
+
+struct WidgetRing: Identifiable {
+    let id = UUID()
+    let position: CGFloat      // Durchmesser in Prozent (0-1, wobei 1 = volle Größe)
+    var color: Color           // Farbe mit Transparenz
+    let type: RingType         // "solid" oder "line"
+}
+
+// MARK: - Ring Generator (ZENTRALE LOGIK)
+
+private func generateRings(from entry: KcaliEntry) -> [WidgetRing] {
+    var rings: [WidgetRing] = []
+    
+    var base = entry.todaysMinCalsGoal
+    if(entry.aplGoal > entry.todaysMinCalsGoal){
+        base = entry.aplGoal
+    }
+    
+    let nowRingPos = CGFloat(entry.todaysCals) / CGFloat(base)
+    var nowRing = WidgetRing(
+        position: nowRingPos,
+        color: WidgetPalette.todayFill,
+        type: .solid
+    )
+    if(nowRingPos >= 1){
+        nowRing.color = WidgetPalette.goalRing.opacity(0.3)
+    }else{
+        let avgRingPos = CGFloat(entry.avgCals) / CGFloat(entry.goal)
+        var avgRing = WidgetRing(
+            position: avgRingPos,
+            color: WidgetPalette.todayFill.opacity(0.3),
+            type: .solid
+        )
+        if(avgRingPos >= 1){
+            avgRing.color = WidgetPalette.goalRing.opacity(0.3)
+        }
+        rings.append(avgRing)
+        
+    }
+    
+    rings.append(nowRing)
+    
+    
+    
+    rings.append(WidgetRing(
+        position: 1.0,
+        color: WidgetPalette.goalRing,
+        type: .line
+    ))
+    
+    return rings
+}
+
 // MARK: - Computation helpers (mirrors PFHealth logic)
 
 private func autoHalfLife(daysCount N: Int, endRatio r: Double = 0.5) -> Double {
@@ -42,6 +102,16 @@ private func requiredCalsToday(goal: Double, halfLife: Double, days: [Int]) -> I
     let w0 = w(0)
     let x = (goal * (w0 + wSum) - pastWeighted) / w0
     return max(0, Int(round(x)))
+}
+
+private enum WidgetPalette {
+    static let goalRing = Color.green
+    static let averageLow = Color.orange
+    static let averageHigh = Color.green
+    static let todayFill = Color.pink
+    static let standRing = Color.blue
+    static let trackFill = Color.black.opacity(0.78)
+    static let trackStroke = Color.white.opacity(0.18)
 }
 
 // MARK: - Timeline Provider
@@ -109,8 +179,14 @@ struct Provider: TimelineProvider {
             let h = autoHalfLife(daysCount: days.count, endRatio: 0.1)
             let avgCals = weightedAverageCals(halfLife: h, days: days)
             let todaysMinCalsGoal = requiredCalsToday(goal: Double(goal), halfLife: h, days: days)
-            let standingProgress = try await fetchStandingProgressToday()
-            let stoodThisHour = try await fetchCurrentHourStandingStatus()
+            var standingProgress = (try? await fetchStandingProgressToday()) ?? (done: 0, goal: 0)
+            let stoodThisHour = (try? await fetchCurrentHourStandingStatus()) ?? false
+            if standingProgress.done == 0, standingProgress.goal == 0 {
+                let doneFromSamples = (try? await fetchStandingHoursFromSamplesToday()) ?? 0
+                if doneFromSamples > 0 {
+                    standingProgress = (done: doneFromSamples, goal: 12)
+                }
+            }
 
             return KcaliEntry(date: Date(), aplGoal: aplGoal, minCals: minCals,
                               avgCals: avgCals, goal: goal,
@@ -233,6 +309,25 @@ struct Provider: TimelineProvider {
             store.execute(q)
         }
     }
+
+    private func fetchStandingHoursFromSamplesToday() async throws -> Int {
+        let type = HKCategoryType.categoryType(forIdentifier: .appleStandHour)!
+        let cal = Calendar.current
+        let now = Date()
+        let startOfDay = cal.startOfDay(for: now)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: now, options: .strictStartDate)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error { return cont.resume(throwing: error) }
+                let stoodHours = (samples as? [HKCategorySample])?.filter {
+                    $0.value == HKCategoryValueAppleStandHour.stood.rawValue
+                }.count ?? 0
+                cont.resume(returning: stoodHours)
+            }
+            store.execute(q)
+        }
+    }
 }
 
 // MARK: - Entry
@@ -272,7 +367,20 @@ private extension KcaliEntry {
     }
 
     var standingFraction: CGFloat {
-        stoodThisHour ? 1.0 : 0.0
+        let target = standingGoal > 0 ? standingGoal : max(standingHours, 12)
+        guard target > 0 else { return 0.0 }
+        return CGFloat(min(Double(standingHours) / Double(target), 1.0))
+    }
+
+    var standingTarget: Int {
+        standingGoal > 0 ? standingGoal : 12
+    }
+
+    var primaryTarget: Int {
+        if !isSteps && aplGoal > todaysMinCalsGoal {
+            return max(aplGoal, 1)
+        }
+        return minimumTarget
     }
 
     var unitLabel: String {
@@ -280,68 +388,42 @@ private extension KcaliEntry {
     }
 }
 
-// MARK: - View
+// MARK: - View (refactored)
 
-struct kcaliWidgetEntryView : View {
+struct kcaliWidgetEntryView: View {
     var entry: Provider.Entry
+    
+    private var rings: [WidgetRing] {
+        generateRings(from: entry)
+    }
+    
     var body: some View {
-        
         ZStack {
             GeometryReader { geo in
-                let anchor = ((geo.size.width + geo.size.height) / 2)
+                let anchor = (geo.size.width + geo.size.height) / 2
                 
-                let p_avgCals = CGFloat(entry.avgCals) / CGFloat(entry.goal)
-                
-                let c_goal = anchor
-                let c_avgCals = anchor * p_avgCals
-                
-                
-                Circle()
-                    .stroke(style: StrokeStyle(lineWidth: 2))
-                    .foregroundStyle(Color.green)
-                    .frame(width: c_goal, height: c_goal)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                
-                if(p_avgCals < 1.0){
-                    Circle()
-                        .fill(Color.orange.opacity(0.5))
-                        .frame(width: c_avgCals, height: c_avgCals)
-                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                }else{
-                    Circle()
-                        .fill(Color.green.opacity(0.5))
-                        .frame(width: c_avgCals, height: c_avgCals)
-                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                    if(entry.aplGoal > entry.todaysMinCalsGoal){
-                        
-                        let p_todaysCals = CGFloat(entry.todaysCals) / CGFloat(entry.aplGoal)
-                        if(p_todaysCals < 1.0){
-                            
-                            let c_todayCals = anchor * p_todaysCals
-                            
-                            
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: c_todayCals, height: c_todayCals)
-                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                            Circle()
-                                .fill(Color.pink.opacity(0.5))
-                                .frame(width: c_todayCals, height: c_todayCals)
-                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                            
-                            
-                            Circle()
-                                .stroke(style: StrokeStyle(lineWidth: 2))
-                                .foregroundStyle(Color.red)
-                                .frame(width: c_goal, height: c_goal)
-                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                        }
+                // Alle Ringe iterativ zeichnen
+                ForEach(rings) { ring in
+                    let diameter = anchor * ring.position
+                    
+                    if ring.type == .line {
+                        Circle()
+                            .stroke(style: StrokeStyle(lineWidth: 2))
+                            .foregroundStyle(ring.color)
+                            .frame(width: diameter, height: diameter)
+                            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    } else {
+                        Circle()
+                            .fill(ring.color)
+                            .frame(width: diameter, height: diameter)
+                            .position(x: geo.size.width / 2, y: geo.size.height / 2)
                     }
                 }
                 
-                if(entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps){
+                // Text-Overlay
+                if entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps {
                     VStack {
-                        Text("")
+                        Text("")
                         Text("\(entry.todaysCals) / \(entry.aplGoal)")
                         
                         Text("ø \(entry.avgCals) / \(entry.goal)")
@@ -349,8 +431,7 @@ struct kcaliWidgetEntryView : View {
                         Text(" ")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    
-                }else{
+                } else {
                     VStack {
                         Text("\(entry.todaysCals) / \(entry.todaysMinCalsGoal)")
                         
@@ -361,114 +442,133 @@ struct kcaliWidgetEntryView : View {
                 }
             }
         }
-
     }
 }
 
+// MARK: - Watch Views (können jetzt dieselbe Ring-Logik nutzen)
+
 private struct WatchCircularComplicationView: View {
     let entry: KcaliEntry
+    
+    private var rings: [WidgetRing] {
+        generateRings(from: entry)
+    }
 
     var body: some View {
         GeometryReader { geo in
-            let anchor = (geo.size.width + geo.size.height) / 2
-            let avgProgress = CGFloat(entry.avgCals) / CGFloat(max(entry.goal, 1))
-            let averageDiameter = anchor * avgProgress
-
-            ZStack {
-                Circle()
-                    .stroke(style: StrokeStyle(lineWidth: 2))
-                    .foregroundStyle(Color.green)
-                    .frame(width: anchor, height: anchor)
-
-                if avgProgress < 1.0 {
+            let anchor = (geo.size.width + geo.size.height) / 2.6
+            
+            // Alle Ringe iterativ zeichnen
+            ForEach(rings) { ring in
+                let diameter = anchor * ring.position
+                
+                if ring.type == .line {
                     Circle()
-                        .fill(Color.orange.opacity(0.5))
-                        .frame(width: averageDiameter, height: averageDiameter)
+                        .stroke(style: StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(ring.color)
+                        .frame(width: diameter, height: diameter)
+                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
                 } else {
                     Circle()
-                        .fill(Color.green.opacity(0.5))
-                        .frame(width: averageDiameter, height: averageDiameter)
-
-                    if entry.aplGoal > entry.todaysMinCalsGoal {
-                        let todayProgress = CGFloat(entry.todaysCals) / CGFloat(max(entry.aplGoal, 1))
-                        if todayProgress < 1.0 {
-                            let todayDiameter = anchor * todayProgress
-
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: todayDiameter, height: todayDiameter)
-                            Circle()
-                                .fill(Color.pink.opacity(0.5))
-                                .frame(width: todayDiameter, height: todayDiameter)
-                            Circle()
-                                .stroke(style: StrokeStyle(lineWidth: 2))
-                                .foregroundStyle(Color.red)
-                                .frame(width: anchor, height: anchor)
-                        }
-                    }
+                        .fill(ring.color)
+                        .frame(width: diameter, height: diameter)
+                        .position(x: geo.size.width / 2, y: geo.size.height / 2)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            if entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps {
+                VStack {
+                    Text("").font(.caption2)
+                    Text("\(entry.aplGoal - entry.todaysCals)")
+                        .font(.caption2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                VStack {
+                    Text("\n\(entry.todaysMinCalsGoal - entry.todaysCals)")
+                    .font(.caption2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
+            
+            if entry.stoodThisHour {
+                Circle()
+                    .stroke(style: StrokeStyle(lineWidth: 3))
+                    .foregroundStyle(WidgetPalette.standRing.opacity(0.5))
+            }else{
+                Circle()
+                    .stroke(style: StrokeStyle(lineWidth: 3))
+                    .foregroundStyle(WidgetPalette.trackStroke)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 private struct WatchRectangularComplicationView: View {
     let entry: KcaliEntry
+    
+    private var rings: [WidgetRing] {
+        generateRings(from: entry)
+    }
 
     var body: some View {
-        HStack(spacing: 8) {
+        VStack(spacing: 8) {
             ZStack {
-                Capsule()
-                    .stroke(Color.gray.opacity(0.45), lineWidth: 1)
-                    .background(
-                        Capsule().fill(Color.black.opacity(0.82))
-                    )
-
                 GeometryReader { geo in
-                    let innerWidth = max(geo.size.width - 6, 0)
-                    let innerHeight = max(geo.size.height - 6, 0)
-                    let achieved = max(min(entry.progressFraction, 1.0), 0.0)
-
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(Color.pink.opacity(0.95))
-                            .frame(width: innerWidth * achieved, height: innerHeight)
+                    let innerWidth = max(geo.size.width*0.75, 0)
+                    
+                    
+                    ForEach(rings) { ring in
+                        let diameter = innerWidth * ring.position
+                        
+                        if ring.type == .line {
+                            Rectangle()
+                                .fill(ring.color)
+                                .frame(width: 2)
+                                .position(x: diameter, y: geo.size.height/2)
+                        } else {
+                            Rectangle()
+                                .fill(ring.color)
+                                .frame(width: diameter)
+                        }
                     }
                 }
-                .padding(3)
                 .clipShape(Capsule())
-
-                Text("\(entry.todaysCals) / \(entry.minimumTarget)")
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-            }
-            .frame(height: 30)
-
-            ZStack {
-                Circle()
-                    .stroke(Color.blue.opacity(0.95), lineWidth: 1.2)
-
-                Circle()
-                    .trim(from: 0, to: entry.standingFraction)
-                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .padding(2)
-
+                
+                Capsule()
+                    .stroke(WidgetPalette.trackFill.opacity(0.5), lineWidth: 10)
+                Capsule()
+                    .stroke(WidgetPalette.trackFill, lineWidth: 6)
+                
                 if entry.stoodThisHour {
-                    Circle()
-                        .fill(Color.blue.opacity(0.22))
-                        .padding(5)
+                    Capsule()
+                        .stroke(WidgetPalette.standRing, lineWidth: 2)
+                } else {
+                    Capsule()
+                        .stroke(WidgetPalette.trackStroke, lineWidth: 2)
                 }
 
-                Text("\(entry.standingHours)")
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
-                    .foregroundStyle(.white)
             }
-            .frame(width: 34, height: 34)
-            .accessibilityLabel("Standing hours \(entry.standingHours), this hour \(entry.stoodThisHour ? "done" : "not done")")
+            .frame(height: 30)
+           
+            if entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps {
+                HStack {
+                    Text("")
+                    Text("\(entry.todaysCals) / \(entry.aplGoal)")
+                    Text("ø \(entry.avgCals) / \(entry.goal)")
+                }
+                .font(.system(size: 10))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                HStack {
+                    Text("\(entry.todaysCals) / \(entry.todaysMinCalsGoal)")
+                    Text("ø \(entry.avgCals) / \(entry.goal)")
+                }
+                .font(.system(size: 10))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
         }
     }
 }
@@ -555,10 +655,44 @@ private struct WidgetRootView: View {
     KcaliEntry(date: .now,
                aplGoal: 555,
                minCals: 666,
-               avgCals: 999,
+               avgCals: 888,
                goal: 888,
-               todaysCals: 666,
-               todaysMinCalsGoal: 555,
+               todaysCals: 333,
+               todaysMinCalsGoal: 666,
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: true)
+}
+#endif
+
+#if os(watchOS)
+#Preview(as: .accessoryCircular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 555,
+               minCals: 666,
+               avgCals: 777,
+               goal: 888,
+               todaysCals: 99,
+               todaysMinCalsGoal: 666,
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: false)
+}
+
+#Preview(as: .accessoryRectangular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 777,
+               minCals: 666,
+               avgCals: 777,
+               goal: 888,
+               todaysCals: 999,
+               todaysMinCalsGoal: 666,
                isSteps: false,
                standingHours: 8,
                standingGoal: 12,

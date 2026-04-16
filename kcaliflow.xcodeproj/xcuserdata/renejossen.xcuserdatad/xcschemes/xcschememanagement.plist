@@ -7,12 +7,12 @@
 		<key>kcaliWatch Watch App.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>2</integer>
 		</dict>
 		<key>kcaliWidgetExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>1</integer>
 		</dict>
 		<key>kcaliflow.xcscheme_^#shared#^_</key>
 		<dict>
@@ -33,6 +33,16 @@
 			<true/>
 		</dict>
 		<key>9A31CF152EA7E5D500304C61</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9AC59C172EA90FEA002696FA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9AFDF5CA2F8A6AFA00C28408</key>
 		<dict>
 			<key>primary</key>
 			<true/>

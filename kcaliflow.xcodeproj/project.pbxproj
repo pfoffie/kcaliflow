@@ -11,11 +11,11 @@
 		9AAE0DEE2EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
 		9AAE0DEF2EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
 		9AAE0DF02EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
+		9AB1C0012F8B000100C28408 /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9AC59C192EA90FEA002696FA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E482EA8E3B500ABC47E /* WidgetKit.framework */; };
 		9AC59C1A2EA90FEA002696FA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */; };
 		9AC59C252EA90FEA002696FA /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9AC59C2D2EA910F7002696FA /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
-		9AB1C0012F8B000100C28408 /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9AFDF5EB2F8A6AFB00C28408 /* kcaliWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -34,14 +34,14 @@
 			remoteGlobalIDString = 9A31CEFE2EA7E5D400304C61;
 			remoteInfo = kcaliflow;
 		};
-		9AC59C232EA90FEA002696FA /* PBXContainerItemProxy */ = {
+		9AB1C0022F8B000100C28408 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9AC59C172EA90FEA002696FA;
 			remoteInfo = kcaliWidgetExtension;
 		};
-		9AB1C0022F8B000100C28408 /* PBXContainerItemProxy */ = {
+		9AC59C232EA90FEA002696FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
 			proxyType = 1;
@@ -655,15 +655,15 @@
 			target = 9A31CEFE2EA7E5D400304C61 /* kcaliflow */;
 			targetProxy = 9A31CF172EA7E5D500304C61 /* PBXContainerItemProxy */;
 		};
-		9AC59C242EA90FEA002696FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
-			targetProxy = 9AC59C232EA90FEA002696FA /* PBXContainerItemProxy */;
-		};
 		9AB1C0042F8B000100C28408 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
 			targetProxy = 9AB1C0022F8B000100C28408 /* PBXContainerItemProxy */;
+		};
+		9AC59C242EA90FEA002696FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
+			targetProxy = 9AC59C232EA90FEA002696FA /* PBXContainerItemProxy */;
 		};
 		9AFDF5D92F8A6AFB00C28408 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
