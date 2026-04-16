@@ -48,6 +48,7 @@ class PFHealth: ObservableObject {
     private let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
     private let stepsType  = HKObjectType.quantityType(forIdentifier: .stepCount)!
     private let summaryType = HKObjectType.activitySummaryType()
+    private let standHourType = HKObjectType.categoryType(forIdentifier: .appleStandHour)!
     #if os(iOS)
     private let watchSync = PhoneWatchSyncBridge()
     #endif
@@ -223,7 +224,7 @@ class PFHealth: ObservableObject {
         }
         
         // Welche Daten wollen wir lesen
-        let toRead: Set<HKObjectType> = [energyType, stepsType, summaryType]
+        let toRead: Set<HKObjectType> = [energyType, stepsType, summaryType, standHourType]
         
         // Anfrage an HealthKit (nur Lesen)
         try await store.requestAuthorization(toShare: [], read: toRead)
