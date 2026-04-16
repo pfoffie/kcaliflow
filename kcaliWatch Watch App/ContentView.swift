@@ -8,8 +8,10 @@
 import SwiftUI
 import Combine
 import WatchConnectivity
+import WidgetKit
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var model = WatchWidgetVisualModel.load()
     private let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
@@ -19,8 +21,14 @@ struct ContentView: View {
             .onAppear {
                 WatchSyncListener.shared.activate()
                 model = .load()
+                WidgetCenter.shared.reloadAllTimelines()
             }
             .onReceive(timer) { _ in model = .load() }
+            .onChange(of: scenePhase) { _, newPhase in
+                guard newPhase == .active else { return }
+                model = .load()
+                WidgetCenter.shared.reloadAllTimelines()
+            }
     }
 }
 
@@ -86,6 +94,7 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         if let v = applicationContext[WatchSharedKeys.todaysCals] as? Int { defaults?.set(v, forKey: WatchSharedKeys.todaysCals) }
         if let v = applicationContext[WatchSharedKeys.todaysMinCalsGoal] as? Int { defaults?.set(v, forKey: WatchSharedKeys.todaysMinCalsGoal) }
         if let v = applicationContext[WatchSharedKeys.trackingMode] as? String { defaults?.set(v, forKey: WatchSharedKeys.trackingMode) }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

@@ -36,6 +36,7 @@ private let defaultStepsGoal   = 10_000
 class PFHealth: ObservableObject {
     private var energyObserverQuery: HKObserverQuery?
     private var stepsObserverQuery: HKObserverQuery?
+    private var standHourObserverQuery: HKObserverQuery?
 
     public let maxDays = 30; // this many days are the maximum to be set in the average
     public var aplGoal: Int = 500
@@ -230,6 +231,7 @@ class PFHealth: ObservableObject {
         try await store.requestAuthorization(toShare: [], read: toRead)
         startObservingEnergy()
         startObservingSteps()
+        startObservingStandHours()
     }
     
     func fetchActivitySummaries(last n: Int) async throws -> [(date: Date, kcal: Int)] {
@@ -404,6 +406,28 @@ class PFHealth: ObservableObject {
             store.execute(q)
         }
         store.enableBackgroundDelivery(for: stepsType, frequency: .immediate) { _, _ in }
+    }
+
+    func startObservingStandHours() {
+        guard standHourObserverQuery == nil else { return }
+        standHourObserverQuery = HKObserverQuery(sampleType: standHourType, predicate: nil) { [weak self] _, completion, error in
+            guard error == nil else {
+                completion()
+                return
+            }
+            if self?.fetching == 0 {
+                Task {
+                    await self?.loadFromHealthKit()
+                    completion()
+                }
+            } else {
+                completion()
+            }
+        }
+        if let q = standHourObserverQuery {
+            store.execute(q)
+        }
+        store.enableBackgroundDelivery(for: standHourType, frequency: .immediate) { _, _ in }
     }
     
     
