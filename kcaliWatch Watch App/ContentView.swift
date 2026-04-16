@@ -40,6 +40,17 @@ private struct WatchWidgetVisualModel {
     let todaysCals: Int
     let todaysMinCalsGoal: Int
     let isSteps: Bool
+    
+    var ringInput: SharedRingInput {
+        SharedRingInput(
+            aplGoal: aplGoal,
+            avgCals: avgCals,
+            goal: goal,
+            todaysCals: todaysCals,
+            todaysMinCalsGoal: todaysMinCalsGoal,
+            isSteps: isSteps
+        )
+    }
 
     static func load() -> WatchWidgetVisualModel {
         let defaults = UserDefaults(suiteName: "group.ch.enjor.health")
@@ -80,32 +91,33 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
 
 private struct WatchWidgetVisualView: View {
     let model: WatchWidgetVisualModel
+    
+    private var rings: [SharedRing] {
+        generateRings(from: model.ringInput)
+    }
 
     var body: some View {
         ZStack {
             GeometryReader { geo in
                 let anchor = ((geo.size.width + geo.size.height) / 2)
-                let pAvg = CGFloat(model.avgCals) / CGFloat(max(model.goal, 1))
-                let cGoal = anchor
-                let cAvg = anchor * min(pAvg, 1.5)
-                let target = max(model.todaysMinCalsGoal, 1)
-                let progress = CGFloat(min(Double(model.todaysCals) / Double(target), 1.0))
-
-                Circle()
-                    .stroke(style: StrokeStyle(lineWidth: 2))
-                    .foregroundStyle(Color.green)
-                    .frame(width: cGoal, height: cGoal)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-
-                Circle()
-                    .fill((pAvg < 1.0 ? Color.orange : Color.green).opacity(0.5))
-                    .frame(width: cAvg, height: cAvg)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-
-                Circle()
-                    .fill((model.isSteps ? Color.orange : Color.pink).opacity(0.5))
-                    .frame(width: anchor * progress, height: anchor * progress)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                let target = model.ringInput.primaryTarget
+                
+                ForEach(rings) { ring in
+                    let diameter = anchor * ring.position
+                    
+                    if ring.type == .line {
+                        Circle()
+                            .stroke(style: StrokeStyle(lineWidth: 2))
+                            .foregroundStyle(ring.color)
+                            .frame(width: diameter, height: diameter)
+                            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    } else {
+                        Circle()
+                            .fill(ring.color)
+                            .frame(width: diameter, height: diameter)
+                            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    }
+                }
 
                 VStack {
                     Text("\(model.todaysCals) / \(target)")

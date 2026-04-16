@@ -10,63 +10,17 @@ import SwiftUI
 import HealthKit
 
 
-// MARK: - Ring Data Structure
-
-enum RingType: String, Codable {
-    case solid
-    case line
-}
-
-struct WidgetRing: Identifiable {
-    let id = UUID()
-    let position: CGFloat      // Durchmesser in Prozent (0-1, wobei 1 = volle Größe)
-    var color: Color           // Farbe mit Transparenz
-    let type: RingType         // "solid" oder "line"
-}
-
-// MARK: - Ring Generator (ZENTRALE LOGIK)
+private typealias WidgetRing = SharedRing
 
 private func generateRings(from entry: KcaliEntry) -> [WidgetRing] {
-    var rings: [WidgetRing] = []
-    
-    var base = entry.todaysMinCalsGoal
-    if(entry.aplGoal > entry.todaysMinCalsGoal){
-        base = entry.aplGoal
-    }
-    
-    let nowRingPos = CGFloat(entry.todaysCals) / CGFloat(base)
-    var nowRing = WidgetRing(
-        position: nowRingPos,
-        color: WidgetPalette.todayFill,
-        type: .solid
-    )
-    if(nowRingPos >= 1){
-        nowRing.color = WidgetPalette.goalRing.opacity(0.3)
-    }else{
-        let avgRingPos = CGFloat(entry.avgCals) / CGFloat(entry.goal)
-        var avgRing = WidgetRing(
-            position: avgRingPos,
-            color: WidgetPalette.todayFill.opacity(0.3),
-            type: .solid
-        )
-        if(avgRingPos >= 1){
-            avgRing.color = WidgetPalette.goalRing.opacity(0.3)
-        }
-        rings.append(avgRing)
-        
-    }
-    
-    rings.append(nowRing)
-    
-    
-    
-    rings.append(WidgetRing(
-        position: 1.0,
-        color: WidgetPalette.goalRing,
-        type: .line
+    generateRings(from: SharedRingInput(
+        aplGoal: entry.aplGoal,
+        avgCals: entry.avgCals,
+        goal: entry.goal,
+        todaysCals: entry.todaysCals,
+        todaysMinCalsGoal: entry.todaysMinCalsGoal,
+        isSteps: entry.isSteps
     ))
-    
-    return rings
 }
 
 // MARK: - Computation helpers (mirrors PFHealth logic)

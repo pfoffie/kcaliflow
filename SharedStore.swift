@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum SharedKeys {
     static let aplGoal           = "aplGoal"
@@ -56,4 +57,78 @@ struct SharedStore {
             defaults.string(forKey: SharedKeys.trackingMode) ?? "calories"
         )
     }
+}
+
+enum SharedRingType: String, Codable {
+    case solid
+    case line
+}
+
+struct SharedRing: Identifiable {
+    let id = UUID()
+    let position: CGFloat
+    var color: Color
+    let type: SharedRingType
+}
+
+struct SharedRingInput {
+    let aplGoal: Int
+    let avgCals: Int
+    let goal: Int
+    let todaysCals: Int
+    let todaysMinCalsGoal: Int
+    let isSteps: Bool
+
+    var minimumTarget: Int {
+        if isSteps { return max(goal, 1) }
+        return max(todaysMinCalsGoal, 1)
+    }
+
+    var primaryTarget: Int {
+        if !isSteps && aplGoal > todaysMinCalsGoal {
+            return max(aplGoal, 1)
+        }
+        return minimumTarget
+    }
+}
+
+private enum SharedRingPalette {
+    static let goalRing = Color.green
+    static let todayCalories = Color.pink
+    static let todaySteps = Color.orange
+}
+
+func generateRings(from input: SharedRingInput) -> [SharedRing] {
+    var rings: [SharedRing] = []
+
+    let nowRingPos = CGFloat(input.todaysCals) / CGFloat(max(input.primaryTarget, 1))
+    let todayBaseColor = input.isSteps ? SharedRingPalette.todaySteps : SharedRingPalette.todayCalories
+    var nowRing = SharedRing(
+        position: nowRingPos,
+        color: todayBaseColor,
+        type: .solid
+    )
+    if nowRingPos >= 1 {
+        nowRing.color = SharedRingPalette.goalRing.opacity(0.3)
+    } else {
+        let avgRingPos = CGFloat(input.avgCals) / CGFloat(max(input.goal, 1))
+        var avgRing = SharedRing(
+            position: avgRingPos,
+            color: todayBaseColor.opacity(0.3),
+            type: .solid
+        )
+        if avgRingPos >= 1 {
+            avgRing.color = SharedRingPalette.goalRing.opacity(0.3)
+        }
+        rings.append(avgRing)
+    }
+
+    rings.append(nowRing)
+    rings.append(SharedRing(
+        position: 1.0,
+        color: SharedRingPalette.goalRing,
+        type: .line
+    ))
+
+    return rings
 }

@@ -16,6 +16,7 @@
 		9AC59C1A2EA90FEA002696FA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */; };
 		9AC59C252EA90FEA002696FA /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9AC59C2D2EA910F7002696FA /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
+		9B5A11A12F8C4B2500D1A1B1 /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
 		9AFDF5EB2F8A6AFB00C28408 /* kcaliWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -625,6 +626,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B5A11A12F8C4B2500D1A1B1 /* SharedStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
