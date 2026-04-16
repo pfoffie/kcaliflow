@@ -21,6 +21,13 @@ struct ContentView: View {
     #if os(iOS)
     @FocusState private var goalFieldFocused: Bool
     #endif
+    private let markerTapRadius: CGFloat = 18
+
+    private var tappableDays: [Day] {
+        let sortedByChartX = pf.days.sorted { $0.day < $1.day }
+        let count = Int(ceil(Double(sortedByChartX.count) / 1.33))
+        return Array(sortedByChartX.prefix(max(1, count)))
+    }
     
     var body: some View {
         let isStepsMode = pf.trackingMode == .steps
@@ -88,7 +95,8 @@ struct ContentView: View {
             .background(c_info)
             .cornerRadius(12)
             
-            if pf.trackingMode == .calories {
+            if pf.trackingMode == .calories &&
+                pf.aplGoal > pf.todaysMinCalsGoal{
                 VStack(spacing: 0) {
                     Button {
                         openFitnessToday()
@@ -147,9 +155,18 @@ struct ContentView: View {
                                 x: .value("Tag", day.day),
                                 y: .value(primarySeriesLabel, day.cals)
                             )
-                            .symbol(by: .value("Serie", primarySeriesLabel))
                             .foregroundStyle(by: .value("Serie", primarySeriesLabel))
                             .interpolationMethod(.monotone)
+                        }
+
+                        // Only show markers for tappable (first third, rounded up) points.
+                        ForEach(tappableDays) { day in
+                            PointMark(
+                                x: .value("Tag", day.day),
+                                y: .value(primarySeriesLabel, day.cals)
+                            )
+                            .symbol(by: .value("Serie", primarySeriesLabel))
+                            .foregroundStyle(by: .value("Serie", primarySeriesLabel))
                         }
 
                         // Selected day dot (no annotation — tooltip is rendered outside compositingGroup)
@@ -178,20 +195,29 @@ struct ContentView: View {
                                 .fill(.clear)
                                 .contentShape(Rectangle())
                                 .onTapGesture { location in
-                                    let origin = geo[proxy.plotFrame!].origin
-                                    let relativeX = location.x - origin.x
-                                    if let dayVal: Int = proxy.value(atX: relativeX, as: Int.self) {
-                                        let nearest = pf.days.min(by: { abs($0.day - dayVal) < abs($1.day - dayVal) })
-                                        guard let nearest else { return }
-                                        if selectedDay?.id == nearest.id {
-                                            withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nil }
-                                        } else {
-                                            if let xp = proxy.position(forX: nearest.day),
-                                               let yp = proxy.position(forY: nearest.cals) {
-                                                tooltipPos = CGPoint(x: origin.x + xp, y: origin.y + yp)
-                                            }
-                                            withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nearest }
-                                        }
+                                    guard let plotFrame = proxy.plotFrame else { return }
+                                    let origin = geo[plotFrame].origin
+                                    let relativeTap = CGPoint(x: location.x - origin.x, y: location.y - origin.y)
+
+                                    let points: [(day: Day, point: CGPoint)] = tappableDays.compactMap { day in
+                                        guard let xp = proxy.position(forX: day.day),
+                                              let yp = proxy.position(forY: day.cals) else { return nil }
+                                        return (day, CGPoint(x: xp, y: yp))
+                                    }
+
+                                    guard let nearest = points.min(by: {
+                                        hypot($0.point.x - relativeTap.x, $0.point.y - relativeTap.y) <
+                                        hypot($1.point.x - relativeTap.x, $1.point.y - relativeTap.y)
+                                    }) else { return }
+
+                                    let distance = hypot(nearest.point.x - relativeTap.x, nearest.point.y - relativeTap.y)
+                                    guard distance <= markerTapRadius else { return }
+
+                                    if selectedDay?.id == nearest.day.id {
+                                        withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nil }
+                                    } else {
+                                        tooltipPos = CGPoint(x: origin.x + nearest.point.x, y: origin.y + nearest.point.y)
+                                        withAnimation(.easeInOut(duration: 0.15)) { selectedDay = nearest.day }
                                     }
                                 }
                         }
@@ -201,16 +227,15 @@ struct ContentView: View {
                     LinearGradient(
                         gradient: Gradient(stops: [
                             .init(color: .white.opacity(0.00), location: 0.00),
-                            .init(color: .white.opacity(0.30), location: 0.20),
-                            .init(color: .white.opacity(0.60), location: 0.50),
-                            .init(color: .white.opacity(0.85), location: 1.00)
+                            .init(color: .white.opacity(0.40), location: 0.20),
+                            .init(color: .white.opacity(0.95), location: 1.00)
                         ]),
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                     .blendMode(.destinationOut)
                     .allowsHitTesting(false)
-                    .frame(height: 200)
+                    .frame(height: 220)
                     .padding(.horizontal, -16)
                 }
                 .compositingGroup()
