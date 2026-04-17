@@ -8,33 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		9AA2DDB22F8A74C4000C15EC /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA2DDB12F8A74C4000C15EC /* WatchConnectivity.framework */; };
-		9AAE0DEE2EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
-		9AAE0DEF2EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
-		9AAE0DF02EA8CEAD00ABC47E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
 		9AB1C0012F8B000100C28408 /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9AC59C192EA90FEA002696FA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E482EA8E3B500ABC47E /* WidgetKit.framework */; };
 		9AC59C1A2EA90FEA002696FA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */; };
 		9AC59C252EA90FEA002696FA /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		9AC59C2D2EA910F7002696FA /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
 		9AFDF5EB2F8A6AFB00C28408 /* kcaliWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		9B5A11A12F8C4B2500D1A1B1 /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		9A31CF0D2EA7E5D500304C61 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9A31CEFE2EA7E5D400304C61;
-			remoteInfo = kcaliflow;
-		};
-		9A31CF172EA7E5D500304C61 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9A31CEFE2EA7E5D400304C61;
-			remoteInfo = kcaliflow;
-		};
 		9AB1C0022F8B000100C28408 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
@@ -48,20 +29,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9AC59C172EA90FEA002696FA;
 			remoteInfo = kcaliWidgetExtension;
-		};
-		9AFDF5D82F8A6AFB00C28408 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9AFDF5CA2F8A6AFA00C28408;
-			remoteInfo = "kcaliWatch Watch App";
-		};
-		9AFDF5E22F8A6AFB00C28408 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9AFDF5CA2F8A6AFA00C28408;
-			remoteInfo = "kcaliWatch Watch App";
 		};
 		9AFDF5E92F8A6AFB00C28408 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -110,36 +77,14 @@
 
 /* Begin PBXFileReference section */
 		9A31CEFF2EA7E5D400304C61 /* kcaliflow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kcaliflow.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A31CF0C2EA7E5D500304C61 /* kcaliflowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kcaliflowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A31CF162EA7E5D500304C61 /* kcaliflowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kcaliflowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AA2DDB12F8A74C4000C15EC /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS26.4.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
-		9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
 		9AAE0E482EA8E3B500ABC47E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
 		9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
 		9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = kcaliWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		9AC59C2A2EA90FF6002696FA /* kcaliWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = kcaliWidgetExtension.entitlements; sourceTree = "<group>"; };
 		9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "kcaliWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		9AFDF5D72F8A6AFB00C28408 /* kcaliWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kcaliWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		9AFDF5E12F8A6AFB00C28408 /* kcaliWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kcaliWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9A31CF4E2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Assets/Assets.xcassets,
-				Assets/kcaliflow.icon,
-			);
-			target = 9A31CF0B2EA7E5D500304C61 /* kcaliflowTests */;
-		};
-		9A31CF4F2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Assets/Assets.xcassets,
-				Assets/kcaliflow.icon,
-			);
-			target = 9A31CF152EA7E5D500304C61 /* kcaliflowUITests */;
-		};
 		9AA2DDAC2F8A6FDA000C15EC /* Exceptions for "kcaliflow" folder in "kcaliWatch Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -169,22 +114,10 @@
 		9A31CF012EA7E5D400304C61 /* kcaliflow */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				9A31CF4E2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowTests" target */,
-				9A31CF4F2EA7E96A00304C61 /* Exceptions for "kcaliflow" folder in "kcaliflowUITests" target */,
 				9AC59C2C2EA9101A002696FA /* Exceptions for "kcaliflow" folder in "kcaliWidgetExtension" target */,
 				9AA2DDAC2F8A6FDA000C15EC /* Exceptions for "kcaliflow" folder in "kcaliWatch Watch App" target */,
 			);
 			path = kcaliflow;
-			sourceTree = "<group>";
-		};
-		9A31CF0F2EA7E5D500304C61 /* kcaliflowTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = kcaliflowTests;
-			sourceTree = "<group>";
-		};
-		9A31CF192EA7E5D500304C61 /* kcaliflowUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = kcaliflowUITests;
 			sourceTree = "<group>";
 		};
 		9AC59C1B2EA90FEA002696FA /* kcaliWidget */ = {
@@ -195,39 +128,20 @@
 			path = kcaliWidget;
 			sourceTree = "<group>";
 		};
+		9AE0880D2F9289A100500981 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		9AFDF5CC2F8A6AFA00C28408 /* kcaliWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "kcaliWatch Watch App";
-			sourceTree = "<group>";
-		};
-		9AFDF5DA2F8A6AFB00C28408 /* kcaliWatch Watch AppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "kcaliWatch Watch AppTests";
-			sourceTree = "<group>";
-		};
-		9AFDF5E42F8A6AFB00C28408 /* kcaliWatch Watch AppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "kcaliWatch Watch AppUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		9A31CEFC2EA7E5D400304C61 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9A31CF092EA7E5D500304C61 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9A31CF132EA7E5D500304C61 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -251,37 +165,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9AFDF5D42F8A6AFB00C28408 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9AFDF5DE2F8A6AFB00C28408 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		9A31CEF62EA7E5D400304C61 = {
 			isa = PBXGroup;
 			children = (
-				9AC59C2A2EA90FF6002696FA /* kcaliWidgetExtension.entitlements */,
+				9AE0880D2F9289A100500981 /* Shared */,
 				9A31CF012EA7E5D400304C61 /* kcaliflow */,
-				9A31CF0F2EA7E5D500304C61 /* kcaliflowTests */,
-				9A31CF192EA7E5D500304C61 /* kcaliflowUITests */,
 				9AC59C1B2EA90FEA002696FA /* kcaliWidget */,
 				9AFDF5CC2F8A6AFA00C28408 /* kcaliWatch Watch App */,
-				9AFDF5DA2F8A6AFB00C28408 /* kcaliWatch Watch AppTests */,
-				9AFDF5E42F8A6AFB00C28408 /* kcaliWatch Watch AppUITests */,
 				9AAE0E472EA8E3B500ABC47E /* Frameworks */,
 				9A31CF002EA7E5D400304C61 /* Products */,
-				9AAE0DE92EA8CEAD00ABC47E /* SharedStore.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -289,12 +184,8 @@
 			isa = PBXGroup;
 			children = (
 				9A31CEFF2EA7E5D400304C61 /* kcaliflow.app */,
-				9A31CF0C2EA7E5D500304C61 /* kcaliflowTests.xctest */,
-				9A31CF162EA7E5D500304C61 /* kcaliflowUITests.xctest */,
 				9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */,
 				9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */,
-				9AFDF5D72F8A6AFB00C28408 /* kcaliWatch Watch AppTests.xctest */,
-				9AFDF5E12F8A6AFB00C28408 /* kcaliWatch Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -330,6 +221,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9A31CF012EA7E5D400304C61 /* kcaliflow */,
+				9AE0880D2F9289A100500981 /* Shared */,
 			);
 			name = kcaliflow;
 			packageProductDependencies = (
@@ -337,52 +229,6 @@
 			productName = kcaliflow;
 			productReference = 9A31CEFF2EA7E5D400304C61 /* kcaliflow.app */;
 			productType = "com.apple.product-type.application";
-		};
-		9A31CF0B2EA7E5D500304C61 /* kcaliflowTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9A31CF232EA7E5D500304C61 /* Build configuration list for PBXNativeTarget "kcaliflowTests" */;
-			buildPhases = (
-				9A31CF082EA7E5D500304C61 /* Sources */,
-				9A31CF092EA7E5D500304C61 /* Frameworks */,
-				9A31CF0A2EA7E5D500304C61 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				9A31CF0E2EA7E5D500304C61 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9A31CF0F2EA7E5D500304C61 /* kcaliflowTests */,
-			);
-			name = kcaliflowTests;
-			packageProductDependencies = (
-			);
-			productName = kcaliflowTests;
-			productReference = 9A31CF0C2EA7E5D500304C61 /* kcaliflowTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		9A31CF152EA7E5D500304C61 /* kcaliflowUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9A31CF262EA7E5D500304C61 /* Build configuration list for PBXNativeTarget "kcaliflowUITests" */;
-			buildPhases = (
-				9A31CF122EA7E5D500304C61 /* Sources */,
-				9A31CF132EA7E5D500304C61 /* Frameworks */,
-				9A31CF142EA7E5D500304C61 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				9A31CF182EA7E5D500304C61 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9A31CF192EA7E5D500304C61 /* kcaliflowUITests */,
-			);
-			name = kcaliflowUITests;
-			packageProductDependencies = (
-			);
-			productName = kcaliflowUITests;
-			productReference = 9A31CF162EA7E5D500304C61 /* kcaliflowUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */ = {
 			isa = PBXNativeTarget;
@@ -398,6 +244,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9AC59C1B2EA90FEA002696FA /* kcaliWidget */,
+				9AE0880D2F9289A100500981 /* Shared */,
 			);
 			name = kcaliWidgetExtension;
 			packageProductDependencies = (
@@ -421,6 +268,7 @@
 				9AB1C0042F8B000100C28408 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				9AE0880D2F9289A100500981 /* Shared */,
 				9AFDF5CC2F8A6AFA00C28408 /* kcaliWatch Watch App */,
 			);
 			name = "kcaliWatch Watch App";
@@ -429,52 +277,6 @@
 			productName = "kcaliWatch Watch App";
 			productReference = 9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */;
 			productType = "com.apple.product-type.application";
-		};
-		9AFDF5D62F8A6AFB00C28408 /* kcaliWatch Watch AppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9AFDF5F02F8A6AFB00C28408 /* Build configuration list for PBXNativeTarget "kcaliWatch Watch AppTests" */;
-			buildPhases = (
-				9AFDF5D32F8A6AFB00C28408 /* Sources */,
-				9AFDF5D42F8A6AFB00C28408 /* Frameworks */,
-				9AFDF5D52F8A6AFB00C28408 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				9AFDF5D92F8A6AFB00C28408 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9AFDF5DA2F8A6AFB00C28408 /* kcaliWatch Watch AppTests */,
-			);
-			name = "kcaliWatch Watch AppTests";
-			packageProductDependencies = (
-			);
-			productName = "kcaliWatch Watch AppTests";
-			productReference = 9AFDF5D72F8A6AFB00C28408 /* kcaliWatch Watch AppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		9AFDF5E02F8A6AFB00C28408 /* kcaliWatch Watch AppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9AFDF5F32F8A6AFB00C28408 /* Build configuration list for PBXNativeTarget "kcaliWatch Watch AppUITests" */;
-			buildPhases = (
-				9AFDF5DD2F8A6AFB00C28408 /* Sources */,
-				9AFDF5DE2F8A6AFB00C28408 /* Frameworks */,
-				9AFDF5DF2F8A6AFB00C28408 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				9AFDF5E32F8A6AFB00C28408 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9AFDF5E42F8A6AFB00C28408 /* kcaliWatch Watch AppUITests */,
-			);
-			name = "kcaliWatch Watch AppUITests";
-			packageProductDependencies = (
-			);
-			productName = "kcaliWatch Watch AppUITests";
-			productReference = 9AFDF5E12F8A6AFB00C28408 /* kcaliWatch Watch AppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -489,27 +291,11 @@
 					9A31CEFE2EA7E5D400304C61 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
-					9A31CF0B2EA7E5D500304C61 = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = 9A31CEFE2EA7E5D400304C61;
-					};
-					9A31CF152EA7E5D500304C61 = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = 9A31CEFE2EA7E5D400304C61;
-					};
 					9AC59C172EA90FEA002696FA = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 					9AFDF5CA2F8A6AFA00C28408 = {
 						CreatedOnToolsVersion = 26.4;
-					};
-					9AFDF5D62F8A6AFB00C28408 = {
-						CreatedOnToolsVersion = 26.4;
-						TestTargetID = 9AFDF5CA2F8A6AFA00C28408;
-					};
-					9AFDF5E02F8A6AFB00C28408 = {
-						CreatedOnToolsVersion = 26.4;
-						TestTargetID = 9AFDF5CA2F8A6AFA00C28408;
 					};
 				};
 			};
@@ -529,32 +315,14 @@
 			projectRoot = "";
 			targets = (
 				9A31CEFE2EA7E5D400304C61 /* kcaliflow */,
-				9A31CF0B2EA7E5D500304C61 /* kcaliflowTests */,
-				9A31CF152EA7E5D500304C61 /* kcaliflowUITests */,
 				9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */,
 				9AFDF5CA2F8A6AFA00C28408 /* kcaliWatch Watch App */,
-				9AFDF5D62F8A6AFB00C28408 /* kcaliWatch Watch AppTests */,
-				9AFDF5E02F8A6AFB00C28408 /* kcaliWatch Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		9A31CEFD2EA7E5D400304C61 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9A31CF0A2EA7E5D500304C61 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9A31CF142EA7E5D500304C61 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -575,20 +343,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9AFDF5D52F8A6AFB00C28408 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9AFDF5DF2F8A6AFB00C28408 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -596,23 +350,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AAE0DEE2EA8CEAD00ABC47E /* SharedStore.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9A31CF082EA7E5D500304C61 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9AAE0DEF2EA8CEAD00ABC47E /* SharedStore.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9A31CF122EA7E5D500304C61 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9AAE0DF02EA8CEAD00ABC47E /* SharedStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -620,26 +357,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AC59C2D2EA910F7002696FA /* SharedStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9AFDF5C72F8A6AFA00C28408 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9B5A11A12F8C4B2500D1A1B1 /* SharedStore.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9AFDF5D32F8A6AFB00C28408 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9AFDF5DD2F8A6AFB00C28408 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -649,16 +370,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		9A31CF0E2EA7E5D500304C61 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9A31CEFE2EA7E5D400304C61 /* kcaliflow */;
-			targetProxy = 9A31CF0D2EA7E5D500304C61 /* PBXContainerItemProxy */;
-		};
-		9A31CF182EA7E5D500304C61 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9A31CEFE2EA7E5D400304C61 /* kcaliflow */;
-			targetProxy = 9A31CF172EA7E5D500304C61 /* PBXContainerItemProxy */;
-		};
 		9AB1C0042F8B000100C28408 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
@@ -668,16 +379,6 @@
 			isa = PBXTargetDependency;
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
 			targetProxy = 9AC59C232EA90FEA002696FA /* PBXContainerItemProxy */;
-		};
-		9AFDF5D92F8A6AFB00C28408 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9AFDF5CA2F8A6AFA00C28408 /* kcaliWatch Watch App */;
-			targetProxy = 9AFDF5D82F8A6AFB00C28408 /* PBXContainerItemProxy */;
-		};
-		9AFDF5E32F8A6AFB00C28408 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9AFDF5CA2F8A6AFA00C28408 /* kcaliWatch Watch App */;
-			targetProxy = 9AFDF5E22F8A6AFB00C28408 /* PBXContainerItemProxy */;
 		};
 		9AFDF5EA2F8A6AFB00C28408 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -901,108 +602,6 @@
 			};
 			name = Release;
 		};
-		9A31CF242EA7E5D500304C61 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflowTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kcaliflow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kcaliflow";
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		9A31CF252EA7E5D500304C61 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflowTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kcaliflow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kcaliflow";
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
-		9A31CF272EA7E5D500304C61 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflowUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = kcaliflow;
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		9A31CF282EA7E5D500304C61 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflowUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = kcaliflow;
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
 		9AC59C272EA90FEA002696FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1149,98 +748,6 @@
 			};
 			name = Release;
 		};
-		9AFDF5F12F8A6AFB00C28408 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kcaliWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kcaliWatch Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 26.4;
-			};
-			name = Debug;
-		};
-		9AFDF5F22F8A6AFB00C28408 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kcaliWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kcaliWatch Watch App";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.4;
-			};
-			name = Release;
-		};
-		9AFDF5F42F8A6AFB00C28408 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "kcaliWatch Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 26.4;
-			};
-			name = Debug;
-		};
-		9AFDF5F52F8A6AFB00C28408 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 84LS3N4W2V;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "kcaliWatch Watch App";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.4;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1262,24 +769,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9A31CF232EA7E5D500304C61 /* Build configuration list for PBXNativeTarget "kcaliflowTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9A31CF242EA7E5D500304C61 /* Debug */,
-				9A31CF252EA7E5D500304C61 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		9A31CF262EA7E5D500304C61 /* Build configuration list for PBXNativeTarget "kcaliflowUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9A31CF272EA7E5D500304C61 /* Debug */,
-				9A31CF282EA7E5D500304C61 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		9AC59C262EA90FEA002696FA /* Build configuration list for PBXNativeTarget "kcaliWidgetExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1294,24 +783,6 @@
 			buildConfigurations = (
 				9AFDF5ED2F8A6AFB00C28408 /* Debug */,
 				9AFDF5EE2F8A6AFB00C28408 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		9AFDF5F02F8A6AFB00C28408 /* Build configuration list for PBXNativeTarget "kcaliWatch Watch AppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9AFDF5F12F8A6AFB00C28408 /* Debug */,
-				9AFDF5F22F8A6AFB00C28408 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		9AFDF5F32F8A6AFB00C28408 /* Build configuration list for PBXNativeTarget "kcaliWatch Watch AppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9AFDF5F42F8A6AFB00C28408 /* Debug */,
-				9AFDF5F52F8A6AFB00C28408 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
