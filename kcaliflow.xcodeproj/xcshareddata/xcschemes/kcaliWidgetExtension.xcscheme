@@ -71,8 +71,18 @@
       allowLocationSimulation = "YES"
       launchAutomaticallySubstyle = "2"
       queueDebuggingEnableBacktraceRecording = "Yes">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <RemoteRunnable
+         runnableDebuggingMode = "2"
+         BundleIdentifier = "com.apple.springboard">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9AC59C172EA90FEA002696FA"
+            BuildableName = "kcaliWidgetExtension.appex"
+            BlueprintName = "kcaliWidgetExtension"
+            ReferencedContainer = "container:kcaliflow.xcodeproj">
+         </BuildableReference>
+      </RemoteRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9AFDF5CA2F8A6AFA00C28408"
@@ -80,7 +90,7 @@
             BlueprintName = "kcaliWatch Watch App"
             ReferencedContainer = "container:kcaliflow.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "_XCWidgetKind"

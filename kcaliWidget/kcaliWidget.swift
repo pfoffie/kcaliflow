@@ -290,19 +290,26 @@ private struct WatchCircularComplicationView: View {
                 }
             }
             
+            
             if entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps {
-                VStack {
-                    Text("").font(.caption2)
-                    Text("\(entry.todaysCals)")
-                        .font(.caption2)
+                let rest:Int = entry.aplGoal - entry.todaysCals
+                if(rest > 0){
+                    VStack {
+                        Text("").font(.caption2)
+                        Text("\(rest)")
+                            .font(.caption2)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
-                VStack {
-                    Text("\(entry.todaysCals)")
-                    .font(.caption2)
+                let rest:Int = entry.todaysMinCalsGoal - entry.todaysCals
+                if(rest > 0){
+                    VStack {
+                        Text("\(rest)")
+                            .font(.caption2)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
             
             if entry.stoodThisHour {
@@ -330,7 +337,7 @@ private struct WatchRectangularComplicationView: View {
         VStack(spacing: 8) {
             ZStack {
                 GeometryReader { geo in
-                    let innerWidth = max(geo.size.width*0.75, 0)
+                    let innerWidth = max(geo.size.width*0.7, 0)
                     
                     
                     ForEach(rings) { ring in
@@ -467,12 +474,12 @@ private struct WidgetRootView: View {
     kcaliWidget()
 } timeline: {
     KcaliEntry(date: .now,
-               aplGoal: 555,
+               aplGoal: 999,
                minCals: 666,
                avgCals: 888,
                goal: 888,
-               todaysCals: 333,
-               todaysMinCalsGoal: 666,
+               todaysCals: 165,
+               todaysMinCalsGoal: 100,
                isSteps: false,
                standingHours: 8,
                standingGoal: 12,
@@ -485,27 +492,27 @@ private struct WidgetRootView: View {
     kcaliWidget()
 } timeline: {
     KcaliEntry(date: .now,
-               aplGoal: 555,
-               minCals: 666,
-               avgCals: 777,
-               goal: 888,
-               todaysCals: 99,
-               todaysMinCalsGoal: 666,
-               isSteps: false,
-               standingHours: 8,
-               standingGoal: 12,
-               stoodThisHour: false)
+       aplGoal: 90,
+       minCals: 666,
+       avgCals: 888,
+       goal: 888,
+       todaysCals: 165,
+       todaysMinCalsGoal: 100,
+       isSteps: false,
+       standingHours: 8,
+       standingGoal: 12,
+       stoodThisHour: true)
 }
 
 #Preview(as: .accessoryRectangular) {
     kcaliWidget()
 } timeline: {
     KcaliEntry(date: .now,
-               aplGoal: 777,
+               aplGoal: 90,
                minCals: 666,
-               avgCals: 777,
+               avgCals: 888,
                goal: 888,
-               todaysCals: 999,
+               todaysCals: 1200,
                todaysMinCalsGoal: 666,
                isSteps: false,
                standingHours: 8,

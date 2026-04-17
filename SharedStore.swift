@@ -100,7 +100,8 @@ private enum SharedRingPalette {
 
 func generateRings(from input: SharedRingInput) -> [SharedRing] {
     var rings: [SharedRing] = []
-
+    
+    var goalRingPos = 1.0
     let nowRingPos = CGFloat(input.todaysCals) / CGFloat(max(input.primaryTarget, 1))
     let todayBaseColor = input.isSteps ? SharedRingPalette.todaySteps : SharedRingPalette.todayCalories
     var nowRing = SharedRing(
@@ -108,8 +109,12 @@ func generateRings(from input: SharedRingInput) -> [SharedRing] {
         color: todayBaseColor,
         type: .solid
     )
+    
     if nowRingPos >= 1 {
         nowRing.color = SharedRingPalette.goalRing.opacity(0.3)
+        if nowRingPos >= 1.65{
+            goalRingPos = 1.0 * (1.65 / nowRingPos)
+        }
     } else {
         let avgRingPos = CGFloat(input.avgCals) / CGFloat(max(input.goal, 1))
         var avgRing = SharedRing(
@@ -125,7 +130,7 @@ func generateRings(from input: SharedRingInput) -> [SharedRing] {
 
     rings.append(nowRing)
     rings.append(SharedRing(
-        position: 1.0,
+        position: goalRingPos,
         color: SharedRingPalette.goalRing,
         type: .line
     ))

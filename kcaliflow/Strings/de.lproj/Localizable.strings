@@ -16,7 +16,7 @@
 "info_curr_average" = "Aktueller Durchschnitt: {kcal} kcal";
 "info_goal_today_steps" = "Ziel heute: {kcal} Schritte";
 "info_curr_average_steps" = "Aktueller Durchschnitt: {kcal} Schritte";
-"info_aplGoal_today" = " Fitness Ziel noch nicht erreicht.";
+"info_aplGoal_today" = " Fitness Ziel: {kcal} kcal";
 
 "setting_goal_kcal" = "Kalorienziel:";
 "setting_goal_steps" = "Schritteziel:";
@@ -24,7 +24,7 @@
 "mode_calories" = "Kalorien";
 "mode_steps" = "Schritte";
 "setting_avg_days" = "Durchschnitt aus {days} Tagen";
-"note_apple_fitness" = " Fitness Ziel: {goal} kcal\nWir empfehlen ein Kalorienziel, das du zuverlässig erreichst. (In deinem Fall {min} kcal)";
+"note_apple_fitness" = " Fitness Ziel: {goal} kcal\nFür zuverlässige Streaks & Auszeichnungen empfehlen wir ein einfach erreichbares Ziel (in deinem Fall ~{min} kcal).";
 
 "info_widget_description" = "Zeigt deinen Kalorienfortschritt und deine Ziele als Widget.";
 
