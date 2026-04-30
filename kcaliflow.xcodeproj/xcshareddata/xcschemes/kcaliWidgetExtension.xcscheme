@@ -29,20 +29,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9AFDF5CA2F8A6AFA00C28408"
-               BuildableName = "kcaliWatch Watch App.app"
-               BlueprintName = "kcaliWatch Watch App"
-               ReferencedContainer = "container:kcaliflow.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "9A31CEFE2EA7E5D400304C61"
                BuildableName = "kcaliflow.app"
                BlueprintName = "kcaliflow"
@@ -85,9 +71,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9AFDF5CA2F8A6AFA00C28408"
-            BuildableName = "kcaliWatch Watch App.app"
-            BlueprintName = "kcaliWatch Watch App"
+            BlueprintIdentifier = "9A31CEFE2EA7E5D400304C61"
+            BuildableName = "kcaliflow.app"
+            BlueprintName = "kcaliflow"
             ReferencedContainer = "container:kcaliflow.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -104,7 +90,7 @@
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "_XCWidgetFamily"
-            value = "systemMedium"
+            value = "systemSmall"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
@@ -121,9 +107,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9AFDF5CA2F8A6AFA00C28408"
-            BuildableName = "kcaliWatch Watch App.app"
-            BlueprintName = "kcaliWatch Watch App"
+            BlueprintIdentifier = "9A31CEFE2EA7E5D400304C61"
+            BuildableName = "kcaliflow.app"
+            BlueprintName = "kcaliflow"
             ReferencedContainer = "container:kcaliflow.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

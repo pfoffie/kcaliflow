@@ -8,10 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		9AA2DDB22F8A74C4000C15EC /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA2DDB12F8A74C4000C15EC /* WatchConnectivity.framework */; };
-		9AB1C0012F8B000100C28408 /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9AB1C0012F8B000100C28408 /* kcaliWatchWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9B1000032F8C000100C28408 /* kcaliWatchWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9AC59C192EA90FEA002696FA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E482EA8E3B500ABC47E /* WidgetKit.framework */; };
 		9AC59C1A2EA90FEA002696FA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */; };
 		9AC59C252EA90FEA002696FA /* kcaliWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9B1000012F8C000100C28408 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E482EA8E3B500ABC47E /* WidgetKit.framework */; };
+		9B1000022F8C000100C28408 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */; };
 		9AFDF5EB2F8A6AFB00C28408 /* kcaliWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -20,8 +22,8 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 9A31CEF72EA7E5D400304C61 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 9AC59C172EA90FEA002696FA;
-			remoteInfo = kcaliWidgetExtension;
+			remoteGlobalIDString = 9B1000062F8C000100C28408;
+			remoteInfo = kcaliWatchWidgetExtension;
 		};
 		9AC59C232EA90FEA002696FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -57,7 +59,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				9AB1C0012F8B000100C28408 /* kcaliWidgetExtension.appex in Embed Foundation Extensions */,
+				9AB1C0012F8B000100C28408 /* kcaliWatchWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,6 +83,7 @@
 		9AAE0E482EA8E3B500ABC47E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
 		9AAE0E4A2EA8E3B500ABC47E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
 		9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = kcaliWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B1000032F8C000100C28408 /* kcaliWatchWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = kcaliWatchWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "kcaliWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -99,6 +102,13 @@
 				Info.plist,
 			);
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
+		};
+		9B1000042F8C000100C28408 /* Exceptions for "kcaliWidget" folder in "kcaliWatchWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 9B1000062F8C000100C28408 /* kcaliWatchWidgetExtension */;
 		};
 		9AC59C2C2EA9101A002696FA /* Exceptions for "kcaliflow" folder in "kcaliWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -124,6 +134,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9AC59C292EA90FEA002696FA /* Exceptions for "kcaliWidget" folder in "kcaliWidgetExtension" target */,
+				9B1000042F8C000100C28408 /* Exceptions for "kcaliWidget" folder in "kcaliWatchWidgetExtension" target */,
 			);
 			path = kcaliWidget;
 			sourceTree = "<group>";
@@ -157,6 +168,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9B1000052F8C000100C28408 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B1000022F8C000100C28408 /* SwiftUI.framework in Frameworks */,
+				9B1000012F8C000100C28408 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AFDF5C82F8A6AFA00C28408 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -185,6 +205,7 @@
 			children = (
 				9A31CEFF2EA7E5D400304C61 /* kcaliflow.app */,
 				9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */,
+				9B1000032F8C000100C28408 /* kcaliWatchWidgetExtension.appex */,
 				9AFDF5CB2F8A6AFA00C28408 /* kcaliWatch Watch App.app */,
 			);
 			name = Products;
@@ -253,6 +274,29 @@
 			productReference = 9AC59C182EA90FEA002696FA /* kcaliWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		9B1000062F8C000100C28408 /* kcaliWatchWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9B10000B2F8C000100C28408 /* Build configuration list for PBXNativeTarget "kcaliWatchWidgetExtension" */;
+			buildPhases = (
+				9B1000082F8C000100C28408 /* Sources */,
+				9B1000052F8C000100C28408 /* Frameworks */,
+				9B1000072F8C000100C28408 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9AC59C1B2EA90FEA002696FA /* kcaliWidget */,
+				9AE0880D2F9289A100500981 /* Shared */,
+			);
+			name = kcaliWatchWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = kcaliWatchWidgetExtension;
+			productReference = 9B1000032F8C000100C28408 /* kcaliWatchWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		9AFDF5CA2F8A6AFA00C28408 /* kcaliWatch Watch App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9AFDF5EC2F8A6AFB00C28408 /* Build configuration list for PBXNativeTarget "kcaliWatch Watch App" */;
@@ -294,6 +338,9 @@
 					9AC59C172EA90FEA002696FA = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
+					9B1000062F8C000100C28408 = {
+						CreatedOnToolsVersion = 26.4;
+					};
 					9AFDF5CA2F8A6AFA00C28408 = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -316,6 +363,7 @@
 			targets = (
 				9A31CEFE2EA7E5D400304C61 /* kcaliflow */,
 				9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */,
+				9B1000062F8C000100C28408 /* kcaliWatchWidgetExtension */,
 				9AFDF5CA2F8A6AFA00C28408 /* kcaliWatch Watch App */,
 			);
 		};
@@ -330,6 +378,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9AC59C162EA90FEA002696FA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9B1000072F8C000100C28408 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -360,6 +415,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9B1000082F8C000100C28408 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AFDF5C72F8A6AFA00C28408 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -372,7 +434,7 @@
 /* Begin PBXTargetDependency section */
 		9AB1C0042F8B000100C28408 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
+			target = 9B1000062F8C000100C28408 /* kcaliWatchWidgetExtension */;
 			targetProxy = 9AB1C0022F8B000100C28408 /* PBXContainerItemProxy */;
 		};
 		9AC59C242EA90FEA002696FA /* PBXTargetDependency */ = {
@@ -605,7 +667,7 @@
 		9AC59C272EA90FEA002696FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = kcaliWidget/kcaliWidgetExtension.entitlements;
@@ -624,29 +686,28 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp.widgetExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.widgetExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "watchsimulator watchos iphonesimulator iphoneos";
-				SUPPORTS_MACCATALYST = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,4";
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		9AC59C282EA90FEA002696FA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = kcaliWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = kcaliWidget/kcaliWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 84LS3N4W2V;
@@ -662,20 +723,92 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
-				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp.widgetExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.widgetExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "watchsimulator watchos iphonesimulator iphoneos";
-				SUPPORTS_MACCATALYST = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,4";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		9B1000092F8C000100C28408 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = kcaliWidget/kcaliWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84LS3N4W2V;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = kcaliWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = kcaliWidget;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = _health_info_text_;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp.widgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		9B10000A2F8C000100C28408 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = kcaliWidget/kcaliWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84LS3N4W2V;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = kcaliWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = kcaliWidget;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = _health_info_text_;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.enjor.kcaliflow.watchApp.widgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "watchsimulator watchos";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Release;
 		};
@@ -774,6 +907,15 @@
 			buildConfigurations = (
 				9AC59C272EA90FEA002696FA /* Debug */,
 				9AC59C282EA90FEA002696FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9B10000B2F8C000100C28408 /* Build configuration list for PBXNativeTarget "kcaliWatchWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9B1000092F8C000100C28408 /* Debug */,
+				9B10000A2F8C000100C28408 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
