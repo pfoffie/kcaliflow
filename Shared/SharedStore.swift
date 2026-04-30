@@ -10,6 +10,7 @@ enum SharedKeys {
     static let todaysMinCalsGoal = "todaysMinCalsGoal"
     static let rollingDays       = "rollingDays"
     static let trackingMode      = "trackingMode"
+    static let stoodThisHour     = "stoodThisHour"
 }
 
 struct SharedStore {
@@ -23,7 +24,8 @@ struct SharedStore {
         todaysCals: Int,
         todaysMinCalsGoal: Int,
         rollingDays: Int,
-        trackingMode: String
+        trackingMode: String,
+        stoodThisHour: Bool
     ) {
         defaults.set(aplGoal, forKey: SharedKeys.aplGoal)
         defaults.set(minCals, forKey: SharedKeys.minCals)
@@ -33,6 +35,7 @@ struct SharedStore {
         defaults.set(todaysMinCalsGoal, forKey: SharedKeys.todaysMinCalsGoal)
         defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
         defaults.set(trackingMode, forKey: SharedKeys.trackingMode)
+        defaults.set(stoodThisHour, forKey: SharedKeys.stoodThisHour)
     }
 
     static func read() -> (
@@ -43,7 +46,8 @@ struct SharedStore {
         todaysCals: Int,
         todaysMinCalsGoal: Int,
         rollingDays: Int,
-        trackingMode: String
+        trackingMode: String,
+        stoodThisHour: Bool
     ) {
         let storedRollingDays = defaults.integer(forKey: SharedKeys.rollingDays)
         return (
@@ -54,7 +58,8 @@ struct SharedStore {
             defaults.integer(forKey: SharedKeys.todaysCals),
             defaults.integer(forKey: SharedKeys.todaysMinCalsGoal),
             storedRollingDays > 0 ? storedRollingDays : 7,
-            defaults.string(forKey: SharedKeys.trackingMode) ?? "calories"
+            defaults.string(forKey: SharedKeys.trackingMode) ?? "calories",
+            defaults.bool(forKey: SharedKeys.stoodThisHour)
         )
     }
 }
@@ -78,6 +83,8 @@ struct SharedRingInput {
     let todaysCals: Int
     let todaysMinCalsGoal: Int
     let isSteps: Bool
+    let stoodThisHour: Bool
+    let usesStandHourGoalHighlight: Bool
 
     var minimumTarget: Int {
         if isSteps { return max(goal, 1) }
@@ -90,18 +97,42 @@ struct SharedRingInput {
         }
         return minimumTarget
     }
+
+    init(
+        aplGoal: Int,
+        avgCals: Int,
+        goal: Int,
+        todaysCals: Int,
+        todaysMinCalsGoal: Int,
+        isSteps: Bool,
+        stoodThisHour: Bool = false,
+        usesStandHourGoalHighlight: Bool = true
+    ) {
+        self.aplGoal = aplGoal
+        self.avgCals = avgCals
+        self.goal = goal
+        self.todaysCals = todaysCals
+        self.todaysMinCalsGoal = todaysMinCalsGoal
+        self.isSteps = isSteps
+        self.stoodThisHour = stoodThisHour
+        self.usesStandHourGoalHighlight = usesStandHourGoalHighlight
+    }
 }
 
 private enum SharedRingPalette {
     static let goalRing = Color.green
     static let todayCalories = Color.pink
     static let todaySteps = Color.orange
+    static let standRing = Color.blue
 }
 
 func generateRings(from input: SharedRingInput) -> [SharedRing] {
     var rings: [SharedRing] = []
     
     var goalRingPos = 1.0
+    let goalRingColor = (input.usesStandHourGoalHighlight && input.stoodThisHour)
+        ? SharedRingPalette.standRing
+        : SharedRingPalette.goalRing
     let nowRingPos = CGFloat(input.todaysCals) / CGFloat(max(input.primaryTarget, 1))
     let todayBaseColor = input.isSteps ? SharedRingPalette.todaySteps : SharedRingPalette.todayCalories
     var nowRing = SharedRing(
@@ -131,7 +162,7 @@ func generateRings(from input: SharedRingInput) -> [SharedRing] {
     rings.append(nowRing)
     rings.append(SharedRing(
         position: goalRingPos,
-        color: SharedRingPalette.goalRing,
+        color: goalRingColor,
         type: .line
     ))
 

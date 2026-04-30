@@ -80,3 +80,5 @@
 
 "info_page_fitness_title" = "Apple Fitness Goal";
 "info_page_fitness_body" = "kcaliflow reads your current activity goal from the Fitness app. Since Apple does not allow apps to change this value, we only show you whether you've already reached it. The «Today's Minimum» is based on your kcaliflow goal – not the Fitness goal.";
+"info_page_standing_title" = "Standing Hour Indicator";
+"info_page_standing_body" = "The blue line marks standing hours. When you have stood in the current hour, the daily goal circle turns blue in the iPhone widget and Apple Watch app. On watch face complications, a blue border around the complication lights up.";

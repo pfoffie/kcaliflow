@@ -80,3 +80,5 @@
 
 "info_page_fitness_title" = "Meta de Apple Fitness";
 "info_page_fitness_body" = "kcaliflow lee tu meta de actividad actual de la app Fitness. Como Apple no permite que las apps cambien este valor, solo te mostramos si ya lo has alcanzado. El «Mínimo de Hoy» se basa en tu meta de kcaliflow, no en la meta de Fitness.";
+"info_page_standing_title" = "Indicador de horas de pie";
+"info_page_standing_body" = "La línea azul marca las horas de pie. Cuando ya te has puesto de pie en la hora actual, el círculo de objetivo diario se vuelve azul en el widget del iPhone y en la app del Apple Watch. En las complicaciones de la esfera, en su lugar se ilumina un borde azul alrededor de la complicación.";

@@ -93,6 +93,7 @@ class PFHealth: ObservableObject {
     
     
     var todaysCals: Int = 0
+    var stoodThisHour: Bool = false
     
     
     init(type: String = "app") {
@@ -294,6 +295,7 @@ class PFHealth: ObservableObject {
 
             self.todaysCals = self.aplDays.last?.cals ?? 0
             self.minCals = self.aplDays.dropLast().map(\.cals).min() ?? 0
+            self.stoodThisHour = (try? await fetchCurrentHourStandingStatus()) ?? false
 
             self.days = Array(self.aplDays.suffix(self.rollingDays))
             
@@ -354,6 +356,24 @@ class PFHealth: ObservableObject {
                 guard let s = summaries?.first else { return cont.resume(returning: 0) }
                 let goal = s.activeEnergyBurnedGoal.doubleValue(for: .kilocalorie())
                 cont.resume(returning: Int(goal.rounded()))
+            }
+            store.execute(q)
+        }
+    }
+
+    func fetchCurrentHourStandingStatus() async throws -> Bool {
+        let cal = Calendar.current
+        let now = Date()
+        let start = cal.dateInterval(of: .hour, for: now)?.start ?? now
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: now, options: .strictStartDate)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKSampleQuery(sampleType: standHourType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error { return cont.resume(throwing: error) }
+                let stood = (samples as? [HKCategorySample])?.contains {
+                    $0.value == HKCategoryValueAppleStandHour.stood.rawValue
+                } ?? false
+                cont.resume(returning: stood)
             }
             store.execute(q)
         }
@@ -443,7 +463,8 @@ class PFHealth: ObservableObject {
             todaysCals: todaysCals,
             todaysMinCalsGoal: todaysMinCalsGoal,
             rollingDays: rollingDays,
-            trackingMode: trackingMode.rawValue
+            trackingMode: trackingMode.rawValue,
+            stoodThisHour: stoodThisHour
         )
         #if os(iOS)
         watchSync.push(
@@ -454,7 +475,8 @@ class PFHealth: ObservableObject {
             todaysCals: todaysCals,
             todaysMinCalsGoal: todaysMinCalsGoal,
             rollingDays: rollingDays,
-            trackingMode: trackingMode.rawValue
+            trackingMode: trackingMode.rawValue,
+            stoodThisHour: stoodThisHour
         )
         #endif
         WidgetCenter.shared.reloadAllTimelines()
@@ -467,6 +489,7 @@ class PFHealth: ObservableObject {
         self.avgCals =      r.avgCals
         self.goal =         r.goal
         self.todaysCals =   r.todaysCals
+        self.stoodThisHour = r.stoodThisHour
         if let mode = TrackingMode(rawValue: r.trackingMode) {
             self.trackingMode = mode
         }
@@ -483,7 +506,7 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
         session.activate()
     }
 
-    func push(aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String) {
+    func push(aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool) {
         guard let session else { return }
         let payload: [String: Any] = [
             "aplGoal": aplGoal,
@@ -493,7 +516,8 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
             "todaysCals": todaysCals,
             "todaysMinCalsGoal": todaysMinCalsGoal,
             "rollingDays": rollingDays,
-            "trackingMode": trackingMode
+            "trackingMode": trackingMode,
+            "stoodThisHour": stoodThisHour
         ]
         try? session.updateApplicationContext(payload)
     }

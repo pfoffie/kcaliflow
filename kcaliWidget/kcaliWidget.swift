@@ -12,14 +12,16 @@ import HealthKit
 
 private typealias WidgetRing = SharedRing
 
-private func generateRings(from entry: KcaliEntry) -> [WidgetRing] {
+private func generateRings(from entry: KcaliEntry, usesStandHourGoalHighlight: Bool = true) -> [WidgetRing] {
     generateRings(from: SharedRingInput(
         aplGoal: entry.aplGoal,
         avgCals: entry.avgCals,
         goal: entry.goal,
         todaysCals: entry.todaysCals,
         todaysMinCalsGoal: entry.todaysMinCalsGoal,
-        isSteps: entry.isSteps
+        isSteps: entry.isSteps,
+        stoodThisHour: entry.stoodThisHour,
+        usesStandHourGoalHighlight: usesStandHourGoalHighlight
     ))
 }
 
@@ -161,14 +163,14 @@ struct KcaliEntry: TimelineEntry {
 }
 
 private extension KcaliEntry {
-    init(from r: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String)) {
+    init(from r: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool)) {
         self.init(date: Date(), aplGoal: r.aplGoal, minCals: r.minCals,
                   avgCals: r.avgCals, goal: r.goal,
                   todaysCals: r.todaysCals, todaysMinCalsGoal: r.todaysMinCalsGoal,
                   isSteps: r.trackingMode == "steps",
                   standingHours: 0,
                   standingGoal: 0,
-                  stoodThisHour: false)
+                  stoodThisHour: r.stoodThisHour)
     }
 
     var minimumTarget: Int {
@@ -265,7 +267,7 @@ private struct WatchCircularComplicationView: View {
     let entry: KcaliEntry
     
     private var rings: [WidgetRing] {
-        generateRings(from: entry)
+        generateRings(from: entry, usesStandHourGoalHighlight: false)
     }
 
     var body: some View {
@@ -330,7 +332,7 @@ private struct WatchRectangularComplicationView: View {
     let entry: KcaliEntry
     
     private var rings: [WidgetRing] {
-        generateRings(from: entry)
+        generateRings(from: entry, usesStandHourGoalHighlight: false)
     }
 
     var body: some View {
@@ -476,9 +478,9 @@ private struct WidgetRootView: View {
     KcaliEntry(date: .now,
                aplGoal: 999,
                minCals: 666,
-               avgCals: 888,
+               avgCals: 1088,
                goal: 888,
-               todaysCals: 165,
+               todaysCals: 265,
                todaysMinCalsGoal: 100,
                isSteps: false,
                standingHours: 8,

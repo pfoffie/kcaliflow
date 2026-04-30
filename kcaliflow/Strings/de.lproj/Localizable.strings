@@ -80,3 +80,5 @@
 
 "info_page_fitness_title" = "Apple Fitness Ziel";
 "info_page_fitness_body" = "kcaliflow liest dein aktuelles Bewegungsziel aus der Fitness-App. Da Apple es Apps nicht erlaubt, diesen Wert zu ändern, zeigen wir dir nur, ob du es bereits erreicht hast. Das «Minimum Heute» orientiert sich an deinem kcaliflow-Ziel – nicht am Fitness-Ziel.";
+"info_page_standing_title" = "Stehstunden-Anzeige";
+"info_page_standing_body" = "Die blaue Linie markiert die Stehstunden. Wenn du in der aktuellen Stunde bereits gestanden bist, wird der tägliche Zielkreis im iPhone-Widget und in der Apple-Watch-App blau. Bei Watchface-Komplikationen leuchtet stattdessen ein blauer Rand um die Komplikation auf.";

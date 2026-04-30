@@ -63,6 +63,14 @@ struct InfoView: View {
                     ) {
                         Text("info_page_fitness_body")
                     }
+
+                    infoCard(
+                        icon: "figure.stand",
+                        iconColor: .blue,
+                        title: String(localized: "info_page_standing_title")
+                    ) {
+                        Text("info_page_standing_body")
+                    }
                 }
                 .padding()
             }

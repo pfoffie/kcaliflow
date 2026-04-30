@@ -39,6 +39,7 @@ private enum WatchSharedKeys {
     static let todaysCals = "todaysCals"
     static let todaysMinCalsGoal = "todaysMinCalsGoal"
     static let trackingMode = "trackingMode"
+    static let stoodThisHour = "stoodThisHour"
 }
 
 private struct WatchWidgetVisualModel {
@@ -48,6 +49,7 @@ private struct WatchWidgetVisualModel {
     let todaysCals: Int
     let todaysMinCalsGoal: Int
     let isSteps: Bool
+    let stoodThisHour: Bool
     
     var ringInput: SharedRingInput {
         SharedRingInput(
@@ -56,7 +58,8 @@ private struct WatchWidgetVisualModel {
             goal: goal,
             todaysCals: todaysCals,
             todaysMinCalsGoal: todaysMinCalsGoal,
-            isSteps: isSteps
+            isSteps: isSteps,
+            stoodThisHour: stoodThisHour
         )
     }
 
@@ -69,7 +72,8 @@ private struct WatchWidgetVisualModel {
             goal: defaults?.integer(forKey: WatchSharedKeys.goal) ?? 0,
             todaysCals: defaults?.integer(forKey: WatchSharedKeys.todaysCals) ?? 0,
             todaysMinCalsGoal: defaults?.integer(forKey: WatchSharedKeys.todaysMinCalsGoal) ?? 0,
-            isSteps: mode == "steps"
+            isSteps: mode == "steps",
+            stoodThisHour: defaults?.bool(forKey: WatchSharedKeys.stoodThisHour) ?? false
         )
     }
 }
@@ -85,15 +89,22 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         session.activate()
     }
 
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        apply(applicationContext: session.receivedApplicationContext)
+    }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        apply(applicationContext: applicationContext)
+    }
+
+    private func apply(applicationContext: [String: Any]) {
         if let v = applicationContext[WatchSharedKeys.aplGoal] as? Int { defaults?.set(v, forKey: WatchSharedKeys.aplGoal) }
         if let v = applicationContext[WatchSharedKeys.avgCals] as? Int { defaults?.set(v, forKey: WatchSharedKeys.avgCals) }
         if let v = applicationContext[WatchSharedKeys.goal] as? Int { defaults?.set(v, forKey: WatchSharedKeys.goal) }
         if let v = applicationContext[WatchSharedKeys.todaysCals] as? Int { defaults?.set(v, forKey: WatchSharedKeys.todaysCals) }
         if let v = applicationContext[WatchSharedKeys.todaysMinCalsGoal] as? Int { defaults?.set(v, forKey: WatchSharedKeys.todaysMinCalsGoal) }
         if let v = applicationContext[WatchSharedKeys.trackingMode] as? String { defaults?.set(v, forKey: WatchSharedKeys.trackingMode) }
+        if let v = applicationContext[WatchSharedKeys.stoodThisHour] as? Bool { defaults?.set(v, forKey: WatchSharedKeys.stoodThisHour) }
         WidgetCenter.shared.reloadAllTimelines()
     }
 }
