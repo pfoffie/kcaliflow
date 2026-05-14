@@ -605,7 +605,16 @@ private struct WatchInlineComplicationView: View {
     let entry: KcaliEntry
 
     var body: some View {
-        Text("\(entry.todaysCals)/\(entry.primaryTarget)")
+        let aaplIcon = entry.aplGoal > entry.todaysMinCalsGoal ? "" : ""
+        if(entry.todaysCals < entry.primaryTarget) {
+            let icon = entry.stoodThisHour ? "◉" : "◎"
+            
+            Text("\(icon) \(entry.primaryTarget - entry.todaysCals) \(aaplIcon)")
+        }else{
+            let icon = entry.stoodThisHour ? "●" : "◉"
+            Text(icon)
+        }
+            
     }
 }
 
@@ -631,7 +640,7 @@ struct kcaliWidget: Widget {
             .description(
                 String(localized: "info_widget_description")
             )
-            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryCorner, .accessoryInline])
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
         } else {
             StaticConfiguration(kind: kind, provider: Provider()) { entry in
                 WidgetRootView(entry: entry)
@@ -640,7 +649,7 @@ struct kcaliWidget: Widget {
             .description(
                 String(localized: "info_widget_description")
             )
-            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryCorner, .accessoryInline])
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
         }
         #endif
     }
@@ -657,9 +666,11 @@ private struct WidgetRootView: View {
                 case .accessoryCircular:
                     WatchCircularComplicationView(entry: entry)
                         .containerBackground(for: .widget) { Color.clear }
+                #if os(watchOS)
                 case .accessoryCorner:
                     WatchSmallPillComplicationView(entry: entry)
                         .containerBackground(for: .widget) { Color.clear }
+                #endif
                 case .accessoryInline:
                     WatchInlineComplicationView(entry: entry)
                         .containerBackground(for: .widget) { Color.clear }
@@ -674,8 +685,10 @@ private struct WidgetRootView: View {
                 switch family {
                 case .accessoryCircular:
                     WatchCircularComplicationView(entry: entry)
+                #if os(watchOS)
                 case .accessoryCorner:
                     WatchSmallPillComplicationView(entry: entry)
+                #endif
                 case .accessoryInline:
                     WatchInlineComplicationView(entry: entry)
                 case .accessoryRectangular:
@@ -721,7 +734,7 @@ private struct WidgetRootView: View {
        minCals: 666,
        avgCals: 888,
        goal: 888,
-       todaysCals: 165,
+       todaysCals: 65,
        todaysMinCalsGoal: 100,
        isSteps: false,
        standingHours: 8,
@@ -753,27 +766,27 @@ private struct WidgetRootView: View {
                minCals: 666,
                avgCals: 888,
                goal: 888,
-               todaysCals: 165,
-               todaysMinCalsGoal: 100,
+               todaysCals: 200,
+               todaysMinCalsGoal: 666,
                isSteps: false,
                standingHours: 8,
                standingGoal: 12,
-               stoodThisHour: false)
+               stoodThisHour: true)
 }
 
 #Preview(as: .accessoryInline) {
     kcaliWidget()
 } timeline: {
     KcaliEntry(date: .now,
-               aplGoal: 90,
-               minCals: 666,
-               avgCals: 888,
-               goal: 888,
-               todaysCals: 165,
-               todaysMinCalsGoal: 100,
-               isSteps: false,
-               standingHours: 8,
-               standingGoal: 12,
-               stoodThisHour: false)
+       aplGoal: 200,
+       minCals: 666,
+       avgCals: 888,
+       goal: 888,
+       todaysCals: 205,
+       todaysMinCalsGoal: 100,
+       isSteps: false,
+       standingHours: 8,
+       standingGoal: 12,
+       stoodThisHour: true)
 }
 #endif
