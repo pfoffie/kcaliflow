@@ -84,12 +84,13 @@ kcaliflow/
 
 ```
 HealthKit
-    └─▶ PFHealth (iPhone)
-            ├─▶ ContentView (live UI)
-            ├─▶ SharedStore (App Group UserDefaults)
-            │       └─▶ Widget / Complications (auto-refresh)
-            └─▶ WatchConnectivity
-                    └─▶ Watch App
+    ├─▶ PFHealth (iPhone)
+    │       ├─▶ ContentView (live UI)
+    │       ├─▶ SharedStore (App Group UserDefaults)
+    │       │       └─▶ Widget / Complications (5-min boundary refresh)
+    │       └─▶ WatchConnectivity
+    │               └─▶ Watch App (shared fallback)
+    └─▶ Watch App HealthKit bridge (direct watch refresh)
 ```
 
 ---

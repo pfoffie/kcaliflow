@@ -824,6 +824,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = kcaliWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = _health_info_text_;
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = _health_info_text_;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = ch.enjor.kcaliflow;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -858,6 +860,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = kcaliWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = _health_info_text_;
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = _health_info_text_;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = ch.enjor.kcaliflow;
 				LD_RUNPATH_SEARCH_PATHS = (

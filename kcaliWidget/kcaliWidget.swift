@@ -39,6 +39,8 @@ private enum WidgetPalette {
 
 struct Provider: TimelineProvider {
     private let store = HKHealthStore()
+    private static let refreshMinutes = 5
+    private static let lookbackDays = 30
 
     func placeholder(in context: Context) -> KcaliEntry {
         KcaliEntry(from: SharedStore.read())
@@ -51,11 +53,7 @@ struct Provider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<KcaliEntry>) -> ()) {
         Task {
             let entry = await fetchEntry()
-            let calendar = Calendar.current
-            let now = Date()
-            let nextRefreshMinute = 5 - (calendar.component(.minute, from: now) % 5)
-            let roundedNow = calendar.date(bySetting: .second, value: 0, of: now) ?? now
-            let next = calendar.date(byAdding: .minute, value: max(nextRefreshMinute, 1), to: roundedNow) ?? now.addingTimeInterval(5 * 60)
+            let next = Self.nextRefreshDate(after: Date())
             completion(Timeline(entries: [entry], policy: .after(next)))
         }
     }
@@ -64,6 +62,13 @@ struct Provider: TimelineProvider {
 
     private func fetchEntry() async -> KcaliEntry {
         let shared = SharedStore.read()
+        let cached = cachedEntry(trackingMode: shared.trackingMode)
+        let live = try? await fetchLiveMetrics(
+            trackingMode: shared.trackingMode,
+            sharedGoal: shared.goal,
+            sharedAplGoal: shared.aplGoal
+        )
+
         var standingProgress = (try? await fetchStandingProgressToday()) ?? (done: 0, goal: 0)
         let stoodThisHour = (try? await fetchCurrentHourStandingStatus()) ?? false
         if standingProgress.done == 0, standingProgress.goal == 0 {
@@ -72,19 +77,190 @@ struct Provider: TimelineProvider {
                 standingProgress = (done: doneFromSamples, goal: 12)
             }
         }
-        return KcaliEntry(
+
+        let fallbackGoal = shared.trackingMode == "steps" ? max(shared.goal, 10_000) : max(shared.goal, 500)
+        let liveGoal = live?.goal ?? fallbackGoal
+        let liveAplGoal = live?.aplGoal ?? max(shared.aplGoal, liveGoal)
+        let liveToday = live?.todaysValue ?? shared.todaysCals
+        let liveAverage = live?.averageValue ?? shared.avgCals
+        var liveMinimumGoal = live?.minimumGoal ?? shared.todaysMinCalsGoal
+        if liveMinimumGoal <= 0 {
+            liveMinimumGoal = max(liveGoal, 1)
+        }
+
+        var entry = KcaliEntry(
             date: Date(),
-            aplGoal: shared.aplGoal,
+            aplGoal: liveAplGoal,
             minCals: shared.minCals,
-            avgCals: shared.avgCals,
-            goal: shared.goal,
-            todaysCals: shared.todaysCals,
-            todaysMinCalsGoal: shared.todaysMinCalsGoal,
+            avgCals: liveAverage,
+            goal: liveGoal,
+            todaysCals: liveToday,
+            todaysMinCalsGoal: liveMinimumGoal,
             isSteps: shared.trackingMode == "steps",
             standingHours: standingProgress.done,
             standingGoal: standingProgress.goal,
             stoodThisHour: stoodThisHour
         )
+
+        if isLikelyPlaceholder(entry), let cached {
+            entry = cached
+        }
+        if !isLikelyPlaceholder(entry) {
+            cache(entry: entry, trackingMode: shared.trackingMode)
+        }
+        return entry
+    }
+
+    private static func nextRefreshDate(after now: Date) -> Date {
+        let calendar = Calendar.current
+        let rounded = calendar.date(bySetting: .second, value: 0, of: now) ?? now
+        let minute = calendar.component(.minute, from: rounded)
+        let remainder = minute % refreshMinutes
+        let deltaMinutes = remainder == 0 ? refreshMinutes : refreshMinutes - remainder
+        return calendar.date(byAdding: .minute, value: deltaMinutes, to: rounded)
+            ?? rounded.addingTimeInterval(Double(refreshMinutes) * 60)
+    }
+
+    private struct LiveMetrics {
+        let todaysValue: Int
+        let averageValue: Int
+        let goal: Int
+        let aplGoal: Int
+        let minimumGoal: Int
+    }
+
+    private func fetchLiveMetrics(trackingMode: String, sharedGoal: Int, sharedAplGoal: Int) async throws -> LiveMetrics {
+        if trackingMode == "steps" {
+            let stepMap = try await fetchStepsByDay(last: Self.lookbackDays)
+            let series = normalizedSeries(from: stepMap)
+            let todays = series.last ?? 0
+            let average = average(for: series)
+            let goal = max(sharedGoal, 10_000)
+            return LiveMetrics(todaysValue: todays, averageValue: average, goal: goal, aplGoal: 0, minimumGoal: goal)
+        }
+
+        let calorieData = try await fetchCaloriesByDay(last: Self.lookbackDays)
+        let series = normalizedSeries(from: calorieData.values)
+        let todays = series.last ?? 0
+        let average = average(for: series)
+        let moveGoal = calorieData.moveGoal > 0 ? calorieData.moveGoal : max(max(sharedAplGoal, sharedGoal), 500)
+        let minimum = max(max(sharedGoal, moveGoal), 1)
+        return LiveMetrics(
+            todaysValue: todays,
+            averageValue: average,
+            goal: minimum,
+            aplGoal: moveGoal,
+            minimumGoal: minimum
+        )
+    }
+
+    private func fetchCaloriesByDay(last n: Int) async throws -> (values: [Date: Int], moveGoal: Int) {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
+
+        var start = cal.dateComponents([.year, .month, .day], from: startDate)
+        start.calendar = cal
+        var end = cal.dateComponents([.year, .month, .day], from: today)
+        end.calendar = cal
+
+        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
+                if let error = error { return cont.resume(throwing: error) }
+                var map: [Date: Int] = [:]
+                var latestGoal = 0
+                for summary in summaries ?? [] {
+                    guard let date = cal.date(from: summary.dateComponents(for: cal)) else { continue }
+                    map[cal.startOfDay(for: date)] = Int(summary.activeEnergyBurned.doubleValue(for: .kilocalorie()).rounded())
+                    let goal = Int(summary.activeEnergyBurnedGoal.doubleValue(for: .kilocalorie()).rounded())
+                    if goal > 0 { latestGoal = goal }
+                }
+                cont.resume(returning: (map, latestGoal))
+            }
+            store.execute(q)
+        }
+    }
+
+    private func fetchStepsByDay(last n: Int) async throws -> [Date: Int] {
+        let type = HKObjectType.quantityType(forIdentifier: .stepCount)!
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
+        let interval = DateComponents(day: 1)
+        let anchorDate = cal.startOfDay(for: startDate)
+
+        return try await withCheckedThrowingContinuation { cont in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: type,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: anchorDate,
+                intervalComponents: interval
+            )
+            query.initialResultsHandler = { _, results, error in
+                if let error = error { return cont.resume(throwing: error) }
+                var values: [Date: Int] = [:]
+                results?.enumerateStatistics(from: startDate, to: today) { stats, _ in
+                    values[cal.startOfDay(for: stats.startDate)] = Int((stats.sumQuantity()?.doubleValue(for: HKUnit.count()) ?? 0).rounded())
+                }
+                cont.resume(returning: values)
+            }
+            store.execute(query)
+        }
+    }
+
+    private func normalizedSeries(from map: [Date: Int]) -> [Int] {
+        map.keys.sorted().map { map[$0] ?? 0 }
+    }
+
+    private func average(for values: [Int]) -> Int {
+        guard !values.isEmpty else { return 0 }
+        return Int((Double(values.reduce(0, +)) / Double(values.count)).rounded())
+    }
+
+    private func cache(entry: KcaliEntry, trackingMode: String) {
+        let defaults = SharedStore.defaults
+        let prefix = "widget_cache_\(trackingMode)_"
+        defaults.set(entry.date, forKey: "\(prefix)date")
+        defaults.set(entry.aplGoal, forKey: "\(prefix)aplGoal")
+        defaults.set(entry.minCals, forKey: "\(prefix)minCals")
+        defaults.set(entry.avgCals, forKey: "\(prefix)avgCals")
+        defaults.set(entry.goal, forKey: "\(prefix)goal")
+        defaults.set(entry.todaysCals, forKey: "\(prefix)todaysCals")
+        defaults.set(entry.todaysMinCalsGoal, forKey: "\(prefix)todaysMinCalsGoal")
+        defaults.set(entry.standingHours, forKey: "\(prefix)standingHours")
+        defaults.set(entry.standingGoal, forKey: "\(prefix)standingGoal")
+        defaults.set(entry.stoodThisHour, forKey: "\(prefix)stoodThisHour")
+    }
+
+    private func cachedEntry(trackingMode: String) -> KcaliEntry? {
+        let defaults = SharedStore.defaults
+        let prefix = "widget_cache_\(trackingMode)_"
+        guard let date = defaults.object(forKey: "\(prefix)date") as? Date else { return nil }
+        return KcaliEntry(
+            date: date,
+            aplGoal: defaults.integer(forKey: "\(prefix)aplGoal"),
+            minCals: defaults.integer(forKey: "\(prefix)minCals"),
+            avgCals: defaults.integer(forKey: "\(prefix)avgCals"),
+            goal: defaults.integer(forKey: "\(prefix)goal"),
+            todaysCals: defaults.integer(forKey: "\(prefix)todaysCals"),
+            todaysMinCalsGoal: defaults.integer(forKey: "\(prefix)todaysMinCalsGoal"),
+            isSteps: trackingMode == "steps",
+            standingHours: defaults.integer(forKey: "\(prefix)standingHours"),
+            standingGoal: defaults.integer(forKey: "\(prefix)standingGoal"),
+            stoodThisHour: defaults.bool(forKey: "\(prefix)stoodThisHour")
+        )
+    }
+
+    private func isLikelyPlaceholder(_ entry: KcaliEntry) -> Bool {
+        let emptyProgress = entry.todaysCals == 0 && entry.avgCals == 0
+        let missingTargets = entry.todaysMinCalsGoal <= 0 || entry.goal <= 0
+        let knownFallbackShape = !entry.isSteps && entry.aplGoal == 500 && entry.goal == 500 && entry.todaysCals == 0
+        return (emptyProgress && missingTargets) || knownFallbackShape
     }
 
     private func fetchStandingProgressToday() async throws -> (done: Int, goal: Int) {
@@ -396,6 +572,43 @@ private struct WatchRectangularComplicationView: View {
     }
 }
 
+private struct WatchSmallPillComplicationView: View {
+    let entry: KcaliEntry
+
+    private var progress: CGFloat {
+        entry.progressFraction
+    }
+
+    var body: some View {
+        ZStack {
+            Capsule()
+                .fill(WidgetPalette.trackFill)
+            GeometryReader { geo in
+                HStack(spacing: 0) {
+                    Capsule()
+                        .fill(entry.isSteps ? Color.orange : Color.pink)
+                        .frame(width: geo.size.width * progress)
+                    Spacer(minLength: 0)
+                }
+            }
+            .clipShape(Capsule())
+            Capsule()
+                .stroke(entry.stoodThisHour ? WidgetPalette.standRing : WidgetPalette.trackStroke, lineWidth: 1.5)
+            Text("\(entry.todaysCals)")
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct WatchInlineComplicationView: View {
+    let entry: KcaliEntry
+
+    var body: some View {
+        Text("\(entry.todaysCals)/\(entry.primaryTarget)")
+    }
+}
+
 struct kcaliWidget: Widget {
     let kind: String = "kcaliWidget"
 
@@ -408,7 +621,7 @@ struct kcaliWidget: Widget {
         .description(
             String(localized: "info_widget_description")
         )
-        .supportedFamilies([.accessoryCircular, .accessoryRectangular])
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryCorner, .accessoryInline])
         #else
         if #available(iOSApplicationExtension 16.0, *) {
             StaticConfiguration(kind: kind, provider: Provider()) { entry in
@@ -418,7 +631,7 @@ struct kcaliWidget: Widget {
             .description(
                 String(localized: "info_widget_description")
             )
-            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryCorner, .accessoryInline])
         } else {
             StaticConfiguration(kind: kind, provider: Provider()) { entry in
                 WidgetRootView(entry: entry)
@@ -427,7 +640,7 @@ struct kcaliWidget: Widget {
             .description(
                 String(localized: "info_widget_description")
             )
-            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryCorner, .accessoryInline])
         }
         #endif
     }
@@ -444,6 +657,12 @@ private struct WidgetRootView: View {
                 case .accessoryCircular:
                     WatchCircularComplicationView(entry: entry)
                         .containerBackground(for: .widget) { Color.clear }
+                case .accessoryCorner:
+                    WatchSmallPillComplicationView(entry: entry)
+                        .containerBackground(for: .widget) { Color.clear }
+                case .accessoryInline:
+                    WatchInlineComplicationView(entry: entry)
+                        .containerBackground(for: .widget) { Color.clear }
                 case .accessoryRectangular:
                     WatchRectangularComplicationView(entry: entry)
                         .containerBackground(for: .widget) { Color.clear }
@@ -455,6 +674,10 @@ private struct WidgetRootView: View {
                 switch family {
                 case .accessoryCircular:
                     WatchCircularComplicationView(entry: entry)
+                case .accessoryCorner:
+                    WatchSmallPillComplicationView(entry: entry)
+                case .accessoryInline:
+                    WatchInlineComplicationView(entry: entry)
                 case .accessoryRectangular:
                     WatchRectangularComplicationView(entry: entry)
                 default:
