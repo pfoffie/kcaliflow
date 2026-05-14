@@ -575,27 +575,57 @@ private struct WatchRectangularComplicationView: View {
 private struct WatchSmallPillComplicationView: View {
     let entry: KcaliEntry
 
-    private var progress: CGFloat {
-        entry.progressFraction
+    private var rings: [WidgetRing] {
+        generateRings(from: entry, usesStandHourGoalHighlight: false)
+    }
+
+    private var usesAppleTarget: Bool {
+        entry.aplGoal > entry.todaysMinCalsGoal && !entry.isSteps
+    }
+
+    private var remaining: Int {
+        (usesAppleTarget ? entry.aplGoal : entry.todaysMinCalsGoal) - entry.todaysCals
     }
 
     var body: some View {
-        ZStack {
-            Capsule()
-                .fill(WidgetPalette.trackFill)
-            GeometryReader { geo in
-                HStack(spacing: 0) {
-                    Capsule()
-                        .fill(entry.isSteps ? Color.orange : Color.pink)
-                        .frame(width: geo.size.width * progress)
-                    Spacer(minLength: 0)
+        GeometryReader { geo in
+            let anchor = (geo.size.width + geo.size.height) / 2.6
+
+            ZStack {
+                ForEach(rings) { ring in
+                    let diameter = anchor * ring.position
+
+                    if ring.type == .line {
+                        Circle()
+                            .stroke(style: StrokeStyle(lineWidth: 1))
+                            .foregroundStyle(ring.color)
+                            .frame(width: diameter, height: diameter)
+                    } else {
+                        Circle()
+                            .fill(ring.color)
+                            .frame(width: diameter, height: diameter)
+                    }
                 }
+
+                if remaining > 0 {
+                    if usesAppleTarget {
+                        VStack(spacing: 0) {
+                            Text("")
+                                .font(.caption2)
+                            Text("\(remaining)")
+                                .font(.caption2)
+                        }
+                    } else {
+                        Text("\(remaining)")
+                            .font(.caption2)
+                    }
+                }
+
+                Circle()
+                    .stroke(style: StrokeStyle(lineWidth: 3))
+                    .foregroundStyle(entry.stoodThisHour ? WidgetPalette.standRing.opacity(0.5) : WidgetPalette.trackStroke)
             }
-            .clipShape(Capsule())
-            Capsule()
-                .stroke(entry.stoodThisHour ? WidgetPalette.standRing : WidgetPalette.trackStroke, lineWidth: 1.5)
-            Text("\(entry.todaysCals)")
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
