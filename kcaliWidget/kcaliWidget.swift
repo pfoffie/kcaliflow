@@ -694,23 +694,23 @@ private struct WidgetRootView: View {
     }
 }
 
-#if os(iOS)
-#Preview(as: .systemSmall) {
-    kcaliWidget()
-} timeline: {
-    KcaliEntry(date: .now,
-               aplGoal: 999,
-               minCals: 666,
-               avgCals: 1088,
-               goal: 888,
-               todaysCals: 265,
-               todaysMinCalsGoal: 100,
-               isSteps: false,
-               standingHours: 8,
-               standingGoal: 12,
-               stoodThisHour: true)
-}
-#endif
+// #if os(iOS)
+// #Preview(as: .systemSmall) {
+//     kcaliWidget()
+// } timeline: {
+//     KcaliEntry(date: .now,
+//                aplGoal: 999,
+//                minCals: 666,
+//                avgCals: 1088,
+//                goal: 888,
+//                todaysCals: 265,
+//                todaysMinCalsGoal: 100,
+//                isSteps: false,
+//                standingHours: 8,
+//                standingGoal: 12,
+//                stoodThisHour: true)
+// }
+// #endif
 
 #if os(watchOS)
 #Preview(as: .accessoryCircular) {
@@ -743,5 +743,37 @@ private struct WidgetRootView: View {
                standingHours: 8,
                standingGoal: 12,
                stoodThisHour: true)
+}
+
+#Preview(as: .accessoryCorner) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 90,
+               minCals: 666,
+               avgCals: 888,
+               goal: 888,
+               todaysCals: 165,
+               todaysMinCalsGoal: 100,
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: false)
+}
+
+#Preview(as: .accessoryInline) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 90,
+               minCals: 666,
+               avgCals: 888,
+               goal: 888,
+               todaysCals: 165,
+               todaysMinCalsGoal: 100,
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: false)
 }
 #endif
