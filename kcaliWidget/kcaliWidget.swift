@@ -83,7 +83,9 @@ struct Provider: TimelineProvider {
         let liveAplGoal = live?.aplGoal ?? max(shared.aplGoal, liveGoal)
         let liveToday = live?.todaysValue ?? shared.todaysCals
         let liveAverage = live?.averageValue ?? shared.avgCals
-        var liveMinimumGoal = live?.minimumGoal ?? shared.todaysMinCalsGoal
+        // Prefer the SharedStore value: it is the weighted minimum computed by the main app.
+        // live?.minimumGoal is always equal to goal (not the smart weighted target), so it must not override.
+        var liveMinimumGoal = shared.todaysMinCalsGoal > 0 ? shared.todaysMinCalsGoal : (live?.minimumGoal ?? max(liveGoal, 1))
         if liveMinimumGoal <= 0 {
             liveMinimumGoal = max(liveGoal, 1)
         }
@@ -737,86 +739,86 @@ private struct WidgetRootView: View {
     }
 }
 
-// #if os(iOS)
-// #Preview(as: .systemSmall) {
+#if os(iOS)
+#Preview(as: .systemSmall) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 222,
+               minCals: 666,
+               avgCals: 1088,
+               goal: 888,
+               todaysCals: 265,
+               todaysMinCalsGoal: 400,
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: true)
+}
+#endif
+
+// #if os(watchOS)
+// #Preview(as: .accessoryCircular) {
 //     kcaliWidget()
 // } timeline: {
 //     KcaliEntry(date: .now,
-//                aplGoal: 999,
+//        aplGoal: 90,
+//        minCals: 666,
+//        avgCals: 888,
+//        goal: 888,
+//        todaysCals: 65,
+//        todaysMinCalsGoal: 100,
+//        isSteps: false,
+//        standingHours: 8,
+//        standingGoal: 12,
+//        stoodThisHour: true)
+// }
+
+// #Preview(as: .accessoryRectangular) {
+//     kcaliWidget()
+// } timeline: {
+//     KcaliEntry(date: .now,
+//                aplGoal: 90,
 //                minCals: 666,
-//                avgCals: 1088,
+//                avgCals: 888,
 //                goal: 888,
-//                todaysCals: 265,
-//                todaysMinCalsGoal: 100,
+//                todaysCals: 1200,
+//                todaysMinCalsGoal: 666,
 //                isSteps: false,
 //                standingHours: 8,
 //                standingGoal: 12,
 //                stoodThisHour: true)
 // }
+
+// #Preview(as: .accessoryCorner) {
+//     kcaliWidget()
+// } timeline: {
+//     KcaliEntry(date: .now,
+//                aplGoal: 90,
+//                minCals: 666,
+//                avgCals: 888,
+//                goal: 888,
+//                todaysCals: 200,
+//                todaysMinCalsGoal: 666,
+//                isSteps: false,
+//                standingHours: 8,
+//                standingGoal: 12,
+//                stoodThisHour: true)
+// }
+
+// #Preview(as: .accessoryInline) {
+//     kcaliWidget()
+// } timeline: {
+//     KcaliEntry(date: .now,
+//        aplGoal: 200,
+//        minCals: 666,
+//        avgCals: 888,
+//        goal: 888,
+//        todaysCals: 205,
+//        todaysMinCalsGoal: 100,
+//        isSteps: false,
+//        standingHours: 8,
+//        standingGoal: 12,
+//        stoodThisHour: true)
+// }
 // #endif
-
-#if os(watchOS)
-#Preview(as: .accessoryCircular) {
-    kcaliWidget()
-} timeline: {
-    KcaliEntry(date: .now,
-       aplGoal: 90,
-       minCals: 666,
-       avgCals: 888,
-       goal: 888,
-       todaysCals: 65,
-       todaysMinCalsGoal: 100,
-       isSteps: false,
-       standingHours: 8,
-       standingGoal: 12,
-       stoodThisHour: true)
-}
-
-#Preview(as: .accessoryRectangular) {
-    kcaliWidget()
-} timeline: {
-    KcaliEntry(date: .now,
-               aplGoal: 90,
-               minCals: 666,
-               avgCals: 888,
-               goal: 888,
-               todaysCals: 1200,
-               todaysMinCalsGoal: 666,
-               isSteps: false,
-               standingHours: 8,
-               standingGoal: 12,
-               stoodThisHour: true)
-}
-
-#Preview(as: .accessoryCorner) {
-    kcaliWidget()
-} timeline: {
-    KcaliEntry(date: .now,
-               aplGoal: 90,
-               minCals: 666,
-               avgCals: 888,
-               goal: 888,
-               todaysCals: 200,
-               todaysMinCalsGoal: 666,
-               isSteps: false,
-               standingHours: 8,
-               standingGoal: 12,
-               stoodThisHour: true)
-}
-
-#Preview(as: .accessoryInline) {
-    kcaliWidget()
-} timeline: {
-    KcaliEntry(date: .now,
-       aplGoal: 200,
-       minCals: 666,
-       avgCals: 888,
-       goal: 888,
-       todaysCals: 205,
-       todaysMinCalsGoal: 100,
-       isSteps: false,
-       standingHours: 8,
-       standingGoal: 12,
-       stoodThisHour: true)
-}
-#endif
