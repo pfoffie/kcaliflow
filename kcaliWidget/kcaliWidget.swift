@@ -609,25 +609,20 @@ private struct WatchSmallPillComplicationView: View {
                     }
                 }
 
-                if remaining > 0 {
-                    if usesAppleTarget {
-                        VStack(spacing: 0) {
-                            Text("")
-                                .font(.caption2)
-                            Text("\(remaining)")
-                                .font(.caption2)
-                        }
-                    } else {
-                        Text("\(remaining)")
-                            .font(.caption2)
-                    }
-                }
-
-                Circle()
-                    .stroke(style: StrokeStyle(lineWidth: 3))
-                    .foregroundStyle(entry.stoodThisHour ? WidgetPalette.standRing.opacity(0.5) : WidgetPalette.trackStroke)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .widgetLabel {
+                        
+            let aaplIcon = entry.aplGoal > entry.todaysMinCalsGoal ? "" : ""
+            if(entry.todaysCals < entry.primaryTarget) {
+                let icon = entry.stoodThisHour ? "◉" : "◎"
+                
+                Text("\(icon) \(entry.primaryTarget - entry.todaysCals) \(aaplIcon)")
+            }else{
+                let icon = entry.stoodThisHour ? "●" : "◉"
+                Text(icon)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -739,86 +734,86 @@ private struct WidgetRootView: View {
     }
 }
 
-#if os(iOS)
-#Preview(as: .systemSmall) {
+// #if os(iOS)
+// #Preview(as: .systemSmall) {
+//     kcaliWidget()
+// } timeline: {
+//     KcaliEntry(date: .now,
+//                aplGoal: 222,
+//                minCals: 666,
+//                avgCals: 1088,
+//                goal: 888,
+//                todaysCals: 265,
+//                todaysMinCalsGoal: 400,
+//                isSteps: false,
+//                standingHours: 8,
+//                standingGoal: 12,
+//                stoodThisHour: true)
+// }
+// #endif
+
+#if os(watchOS)
+#Preview(as: .accessoryCircular) {
     kcaliWidget()
 } timeline: {
     KcaliEntry(date: .now,
-               aplGoal: 222,
+       aplGoal: 90,
+       minCals: 666,
+       avgCals: 888,
+       goal: 888,
+       todaysCals: 65,
+       todaysMinCalsGoal: 100,
+       isSteps: false,
+       standingHours: 8,
+       standingGoal: 12,
+       stoodThisHour: true)
+}
+
+#Preview(as: .accessoryRectangular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 90,
                minCals: 666,
-               avgCals: 1088,
+               avgCals: 888,
                goal: 888,
-               todaysCals: 265,
-               todaysMinCalsGoal: 400,
+               todaysCals: 1200,
+               todaysMinCalsGoal: 666,
                isSteps: false,
                standingHours: 8,
                standingGoal: 12,
                stoodThisHour: true)
 }
+
+#Preview(as: .accessoryCorner) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+               aplGoal: 90,
+               minCals: 666,
+               avgCals: 888,
+               goal: 888,
+               todaysCals: 200,
+               todaysMinCalsGoal: 666,
+               isSteps: false,
+               standingHours: 8,
+               standingGoal: 12,
+               stoodThisHour: true)
+}
+
+#Preview(as: .accessoryInline) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry(date: .now,
+       aplGoal: 200,
+       minCals: 666,
+       avgCals: 888,
+       goal: 888,
+       todaysCals: 205,
+       todaysMinCalsGoal: 100,
+       isSteps: false,
+       standingHours: 8,
+       standingGoal: 12,
+       stoodThisHour: true)
+}
 #endif
-
-// #if os(watchOS)
-// #Preview(as: .accessoryCircular) {
-//     kcaliWidget()
-// } timeline: {
-//     KcaliEntry(date: .now,
-//        aplGoal: 90,
-//        minCals: 666,
-//        avgCals: 888,
-//        goal: 888,
-//        todaysCals: 65,
-//        todaysMinCalsGoal: 100,
-//        isSteps: false,
-//        standingHours: 8,
-//        standingGoal: 12,
-//        stoodThisHour: true)
-// }
-
-// #Preview(as: .accessoryRectangular) {
-//     kcaliWidget()
-// } timeline: {
-//     KcaliEntry(date: .now,
-//                aplGoal: 90,
-//                minCals: 666,
-//                avgCals: 888,
-//                goal: 888,
-//                todaysCals: 1200,
-//                todaysMinCalsGoal: 666,
-//                isSteps: false,
-//                standingHours: 8,
-//                standingGoal: 12,
-//                stoodThisHour: true)
-// }
-
-// #Preview(as: .accessoryCorner) {
-//     kcaliWidget()
-// } timeline: {
-//     KcaliEntry(date: .now,
-//                aplGoal: 90,
-//                minCals: 666,
-//                avgCals: 888,
-//                goal: 888,
-//                todaysCals: 200,
-//                todaysMinCalsGoal: 666,
-//                isSteps: false,
-//                standingHours: 8,
-//                standingGoal: 12,
-//                stoodThisHour: true)
-// }
-
-// #Preview(as: .accessoryInline) {
-//     kcaliWidget()
-// } timeline: {
-//     KcaliEntry(date: .now,
-//        aplGoal: 200,
-//        minCals: 666,
-//        avgCals: 888,
-//        goal: 888,
-//        todaysCals: 205,
-//        todaysMinCalsGoal: 100,
-//        isSteps: false,
-//        standingHours: 8,
-//        standingGoal: 12,
-//        stoodThisHour: true)
-// }
-// #endif
