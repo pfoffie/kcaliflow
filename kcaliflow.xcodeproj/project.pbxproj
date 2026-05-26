@@ -111,7 +111,7 @@
 			);
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
 		};
-		9B1000042F8C000100C28408 /* Exceptions for "kcaliWidget" folder in "kcaliWatchWidgetExtension" target */ = {
+		9B10000C2F8C000100C28408 /* Exceptions for "kcaliWatchWidget" folder in "kcaliWatchWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -134,7 +134,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9AC59C292EA90FEA002696FA /* Exceptions for "kcaliWidget" folder in "kcaliWidgetExtension" target */,
-				9B1000042F8C000100C28408 /* Exceptions for "kcaliWidget" folder in "kcaliWatchWidgetExtension" target */,
 			);
 			path = kcaliWidget;
 			sourceTree = "<group>";
@@ -147,6 +146,14 @@
 		9AFDF5CC2F8A6AFA00C28408 /* kcaliWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "kcaliWatch Watch App";
+			sourceTree = "<group>";
+		};
+		9B10000D2F8C000100C28408 /* kcaliWatchWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9B10000C2F8C000100C28408 /* Exceptions for "kcaliWatchWidget" folder in "kcaliWatchWidgetExtension" target */,
+			);
+			path = kcaliWatchWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -195,6 +202,7 @@
 				9A31CF012EA7E5D400304C61 /* kcaliflow */,
 				9AC59C1B2EA90FEA002696FA /* kcaliWidget */,
 				9AFDF5CC2F8A6AFA00C28408 /* kcaliWatch Watch App */,
+				9B10000D2F8C000100C28408 /* kcaliWatchWidget */,
 				9AAE0E472EA8E3B500ABC47E /* Frameworks */,
 				9A31CF002EA7E5D400304C61 /* Products */,
 			);
@@ -312,7 +320,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9AC59C1B2EA90FEA002696FA /* kcaliWidget */,
+				9B10000D2F8C000100C28408 /* kcaliWatchWidget */,
 				9AE0880D2F9289A100500981 /* Shared */,
 			);
 			name = kcaliWatchWidgetExtension;
@@ -826,12 +834,12 @@
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = kcaliWidget/kcaliWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = kcaliWatchWidget/kcaliWatchWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 84LS3N4W2V;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = kcaliWidget/Info.plist;
+				INFOPLIST_FILE = kcaliWatchWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = kcaliflow;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = _health_info_text_;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -862,12 +870,12 @@
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = kcaliWidget/kcaliWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = kcaliWatchWidget/kcaliWatchWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 84LS3N4W2V;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = kcaliWidget/Info.plist;
+				INFOPLIST_FILE = kcaliWatchWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = kcaliflow;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = _health_info_text_;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

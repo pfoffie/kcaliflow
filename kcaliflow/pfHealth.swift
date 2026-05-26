@@ -2,7 +2,7 @@
 //  pfHealth.swift
 //  kcaliflow
 //
-//  Created by René Jossen on 21.10.2025.
+//  Created by Rene Jossen on 21.10.2025.
 //
 
 import Foundation
@@ -13,43 +13,30 @@ import WidgetKit
 import WatchConnectivity
 #endif
 
-enum TrackingMode: String {
-    case calories, steps
-}
-
-struct Day: Identifiable {
-    let id = UUID()
-    let day: Int
-    let cals: Int
-}
-
 private let goalKey = "goal_kcal" // legacy compatibility key
 private let caloriesGoalKey = "goal_kcal_mode_calories"
 private let stepsGoalKey = "goal_kcal_mode_steps"
 private let daysKey = "average_days"
 private let modeKey = "tracking_mode"
 
-private let defaultCaloriesGoal = 500
-private let defaultStepsGoal   = 10_000
-
-
-class PFHealth: ObservableObject {
+final class PFHealth: ObservableObject {
     private var energyObserverQuery: HKObserverQuery?
     private var stepsObserverQuery: HKObserverQuery?
     private var standHourObserverQuery: HKObserverQuery?
 
-    public let maxDays = 30; // this many days are the maximum to be set in the average
-    public var aplGoal: Int = 500
+    public let maxDays = 30
+    public var aplGoal: Int = TrackingDefaults.goal(for: .calories)
     private var aplDays: [Day] = []
-    
-    public var minCals:Int = 0
-    public var avgCals:Int = 0
-    
-    private let store = HKHealthStore()
+
+    public var minCals: Int = 0
+    public var avgCals: Int = 0
+
+    // The shared service owns every HealthKit read path so iPhone and Watch stay aligned.
+    private let healthService = AppleHealthDataService()
     private let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
-    private let stepsType  = HKObjectType.quantityType(forIdentifier: .stepCount)!
-    private let summaryType = HKObjectType.activitySummaryType()
+    private let stepsType = HKObjectType.quantityType(forIdentifier: .stepCount)!
     private let standHourType = HKObjectType.categoryType(forIdentifier: .appleStandHour)!
+
     #if os(iOS)
     private let watchSync = PhoneWatchSyncBridge()
     #endif
@@ -57,48 +44,45 @@ class PFHealth: ObservableObject {
     @Published var trackingMode: TrackingMode = .calories {
         didSet {
             guard oldValue != trackingMode else { return }
+
             UserDefaults.standard.set(trackingMode.rawValue, forKey: modeKey)
             goal = persistedGoal(for: trackingMode)
-            aplGoal = 0
+            aplGoal = trackingMode == .steps ? 0 : aplGoal
             loadData()
         }
     }
 
-    var unitLabel: String { trackingMode == .steps ? "Steps" : "kcal" }
-    
-    private var fetching:Int = 0
+    var unitLabel: String {
+        trackingMode == .steps ? "Steps" : "kcal"
+    }
+
+    private var fetching: Int = 0
     private var pendingReload = false
     @Published var isLoading: Bool = true
-    
+
     @Published var days: [Day] = []
-    @Published var goal: Int = 500 {
+    @Published var goal: Int = TrackingDefaults.goal(for: .calories) {
         didSet {
             UserDefaults.standard.set(goal, forKey: goalKey)
             UserDefaults.standard.set(goal, forKey: goalStorageKey(for: trackingMode))
             recompute()
         }
     }
-    @Published var todaysMinCalsGoal: Int = 0;
+    @Published var todaysMinCalsGoal: Int = 0
     @Published var rollingDays: Int = 7 {
         didSet {
             UserDefaults.standard.set(rollingDays, forKey: daysKey)
-            
-            self.days = Array(self.aplDays.suffix(self.rollingDays))
-            
             recompute()
         }
     }
-    @Published var average: Double = 0 // to be calculated
-    
-    
-    
+    @Published var average: Double = 0
+
     var todaysCals: Int = 0
     var stoodThisHour: Bool = false
-    
-    
+
     init(type: String = "app") {
-        if let stored = UserDefaults.standard.object(forKey: daysKey) as? Int {
-            rollingDays = stored
+        if let storedRollingDays = UserDefaults.standard.object(forKey: daysKey) as? Int {
+            rollingDays = storedRollingDays
         }
 
         if let storedMode = UserDefaults.standard.string(forKey: modeKey),
@@ -108,13 +92,14 @@ class PFHealth: ObservableObject {
 
         goal = persistedGoal(for: trackingMode)
 
-        loadData()
         #if os(iOS)
         watchSync.activate()
         #endif
-        
+
         if type == "widget" {
             mirrorFromSharedStore()
+        } else {
+            loadData()
         }
     }
 
@@ -122,95 +107,46 @@ class PFHealth: ObservableObject {
         mode == .steps ? stepsGoalKey : caloriesGoalKey
     }
 
-    private func defaultGoal(for mode: TrackingMode) -> Int {
-        mode == .steps ? defaultStepsGoal : defaultCaloriesGoal
-    }
-
     private func persistedGoal(for mode: TrackingMode) -> Int {
-        let modeKey = goalStorageKey(for: mode)
-        if let stored = UserDefaults.standard.object(forKey: modeKey) as? Int {
+        let storageKey = goalStorageKey(for: mode)
+        if let stored = UserDefaults.standard.object(forKey: storageKey) as? Int {
             return stored
         }
 
-        // Migrate old single goal value to calories mode.
+        // Keep the old single-goal setting alive for users upgrading from older builds.
         if mode == .calories,
-           let legacy = UserDefaults.standard.object(forKey: goalKey) as? Int {
-            return legacy
+           let legacyGoal = UserDefaults.standard.object(forKey: goalKey) as? Int {
+            return legacyGoal
         }
 
-        return defaultGoal(for: mode)
+        return TrackingDefaults.goal(for: mode)
     }
-    
+
     func loadData() {
         Task {
             await loadFromHealthKit()
-       }
-    }
-    
-    func dummyData() {
-        days.append(Day(day: 0, cals: todaysCals))
-        days.append(Day(day: 0, cals: 700))
-        for day in 1...rollingDays-1 {
-            days.append(Day(day: day, cals: Int.random(in: 400...475) ))
         }
     }
-    
-    func requiredCalsToday(goal: Double, halfLife: Double, days: [Day]) -> Int {
-        let N = min(days.count, rollingDays)
-        if(N < 2) { return 0 }
-        
-        func w(_ i: Int) -> Double { pow(0.5, Double(i)/halfLife) }
 
-        var wSum = 0.0
-        var pastWeighted = 0.0
-
-        for i in 1..<N {                 // nur Vergangenheit
-            let wi = w(i)
-            wSum += wi
-            pastWeighted += wi * Double(days[i].cals)
-        }
-        let w0 = w(0)                     // Gewicht heute
-        let totalW = w0 + wSum
-        let x = (goal * totalW - pastWeighted) / w0
-
-        return max(0, Int(round(x)))      // clamp auf >= 0
-    }
-    
-    func weightedAverageCals(halfLife: Double, days: [Day]) -> Int {
-        let N = min(days.count, rollingDays)
-        if(N < 2) { return 0 }
-        
-        func w(_ i: Int) -> Double { pow(0.5, Double(i)/halfLife) }
-        
-        var wSum = 0.0
-        var pastWeighted = 0.0
-        
-        // complete average including today
-        for i in 0..<N {
-            let wi = w(i)
-            wSum += wi
-            pastWeighted += wi * Double(days[i].cals)
-        }
-        
-        let totalW = wSum
-        let x = pastWeighted / totalW
-        
-        return Int(round(x))
-    }
-    
-    func autoHalfLife(daysCount N: Int, endRatio r: Double = 0.5) -> Double {
-        guard N > 1, r > 0, r < 1 else { return 1 }
-        return Double(N - 1) / (log2(1.0 / r))
-    }
-    
     private func recompute() {
         fetching = 0
-        let h = autoHalfLife(daysCount: days.count, endRatio: 0.1)
-        todaysMinCalsGoal = requiredCalsToday(goal: Double(goal), halfLife: h, days: days.reversed())
-        
-        //avgCals = days.map(\.cals).reduce(0, +) / self.rollingDays
-        avgCals = weightedAverageCals(halfLife: h, days: days.reversed())
-        
+
+        // Re-run the shared math locally whenever the user changes goal or averaging days.
+        let metrics = TrackingMath.makeMetrics(
+            from: aplDays,
+            goal: goal,
+            rollingDays: rollingDays,
+            appleMoveGoal: aplGoal,
+            stoodThisHour: stoodThisHour
+        )
+
+        days = metrics.visibleDays
+        todaysCals = metrics.todaysValue
+        minCals = metrics.minimumHistoricalValue
+        avgCals = metrics.weightedAverage
+        average = Double(metrics.weightedAverage)
+        todaysMinCalsGoal = metrics.requiredToday
+
         mirrorToWidget()
 
         if pendingReload {
@@ -218,177 +154,64 @@ class PFHealth: ObservableObject {
             Task { await loadFromHealthKit() }
         }
     }
-    
+
     func requestAuthorization() async throws {
-        // Prüfen, ob HealthKit verfügbar ist
-        guard HKHealthStore.isHealthDataAvailable() else {
-            throw HKError(.errorHealthDataUnavailable)
-        }
-        
-        // Welche Daten wollen wir lesen
-        let toRead: Set<HKObjectType> = [energyType, stepsType, summaryType, standHourType]
-        
-        // Anfrage an HealthKit (nur Lesen)
-        try await store.requestAuthorization(toShare: [], read: toRead)
+        try await healthService.requestAuthorization()
         startObservingEnergy()
         startObservingSteps()
         startObservingStandHours()
     }
-    
-    func fetchActivitySummaries(last n: Int) async throws -> [(date: Date, kcal: Int)] {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
 
-        var start = cal.dateComponents([.year, .month, .day], from: startDate)
-        start.calendar = cal
-        var end = cal.dateComponents([.year, .month, .day], from: today)
-        end.calendar = cal
-
-        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
-
-        return try await withCheckedThrowingContinuation { cont in
-            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
-                if let error = error { return cont.resume(throwing: error) }
-                let result: [(Date, Int)] = (summaries ?? []).compactMap { s in
-                    guard let date = cal.date(from: s.dateComponents(for: cal)) else { return nil }
-                    let kcal = s.activeEnergyBurned.doubleValue(for: .kilocalorie())
-                    return (date, Int(round(kcal)))
-                }.sorted { $0.0 < $1.0 }
-                cont.resume(returning: result)
-            }
-            store.execute(q)
-        }
-    }
-    
     @MainActor
     func loadFromHealthKit() async {
         guard fetching == 0 else {
             pendingReload = true
             return
         }
+
         fetching = 1
+
         do {
             NSLog("loadFromHealthKit mode=\(trackingMode.rawValue)")
-            let cal = Calendar.current
-            let today = cal.startOfDay(for: Date())
 
-            let dailyValues: [Date: Int]
-            if trackingMode == .steps {
-                dailyValues = try await fetchStepsByDay(last: maxDays)
-                aplGoal = 0
-            } else {
-                let summaries = try await fetchActivitySummaries(last: maxDays)
-                var map: [Date: Int] = [:]
-                for (date, kcal) in summaries { map[cal.startOfDay(for: date)] = kcal }
-                dailyValues = map
-                let goal = try await fetchMoveGoal()
-                self.aplGoal = Int(goal)
-            }
+            let collection = try await healthService.fetchCollection(last: maxDays, mode: trackingMode)
+            let metrics = TrackingMath.makeMetrics(
+                from: collection,
+                goal: goal,
+                rollingDays: rollingDays,
+                maxDays: maxDays
+            )
 
-            aplDays.removeAll()
-            for i in 0..<maxDays {
-                let date = cal.date(byAdding: .day, value: -(maxDays - 1 - i), to: today)!
-                let value = dailyValues[cal.startOfDay(for: date)] ?? 0
-                aplDays.append(Day(day: maxDays - i - 1, cals: value))
-            }
+            aplGoal = metrics.appleMoveGoal
+            aplDays = metrics.allDays
+            stoodThisHour = metrics.stoodThisHour
+            isLoading = false
 
-            self.todaysCals = self.aplDays.last?.cals ?? 0
-            self.minCals = self.aplDays.dropLast().map(\.cals).min() ?? 0
-            self.stoodThisHour = (try? await fetchCurrentHourStandingStatus()) ?? false
-
-            self.days = Array(self.aplDays.suffix(self.rollingDays))
-            
             recompute()
         } catch {
             NSLog("HealthKit error: \(error)")
             fetching = 0
-        }
-        isLoading = false
-    }
-
-    func fetchStepsByDay(last n: Int) async throws -> [Date: Int] {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let startDate = cal.date(byAdding: .day, value: -(n - 1), to: today)!
-
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
-        let anchorDate = cal.startOfDay(for: startDate)
-        let interval = DateComponents(day: 1)
-
-        return try await withCheckedThrowingContinuation { cont in
-            let q = HKStatisticsCollectionQuery(
-                quantityType: stepsType,
-                quantitySamplePredicate: predicate,
-                options: .cumulativeSum,
-                anchorDate: anchorDate,
-                intervalComponents: interval
-            )
-            q.initialResultsHandler = { _, results, error in
-                if let error = error { return cont.resume(throwing: error) }
-                var map: [Date: Int] = [:]
-                results?.enumerateStatistics(from: startDate, to: today) { stats, _ in
-                    let steps = stats.sumQuantity()?.doubleValue(for: HKUnit.count()) ?? 0
-                    map[cal.startOfDay(for: stats.startDate)] = Int(round(steps))
-                }
-                cont.resume(returning: map)
-            }
-            store.execute(q)
-        }
-    }
-    
-    func fetchMoveGoal() async throws -> Int {
-        let cal = Calendar.current
-        let now = Date()
-        let startOfDay = cal.startOfDay(for: now)
-
-        var start = cal.dateComponents([.year, .month, .day], from: startOfDay)
-        start.calendar = cal
-
-        var end = cal.dateComponents([.year, .month, .day], from: now)
-        end.calendar = cal
-
-        let predicate = HKQuery.predicate(forActivitySummariesBetweenStart: start, end: end)
-
-        return try await withCheckedThrowingContinuation { cont in
-            let q = HKActivitySummaryQuery(predicate: predicate) { _, summaries, error in
-                if let error = error { return cont.resume(throwing: error) }
-                guard let s = summaries?.first else { return cont.resume(returning: 0) }
-                let goal = s.activeEnergyBurnedGoal.doubleValue(for: .kilocalorie())
-                cont.resume(returning: Int(goal.rounded()))
-            }
-            store.execute(q)
+            isLoading = false
         }
     }
 
-    func fetchCurrentHourStandingStatus() async throws -> Bool {
-        let cal = Calendar.current
-        let now = Date()
-        let start = cal.dateInterval(of: .hour, for: now)?.start ?? now
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: now, options: .strictStartDate)
-
-        return try await withCheckedThrowingContinuation { cont in
-            let q = HKSampleQuery(sampleType: standHourType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
-                if let error = error { return cont.resume(throwing: error) }
-                let stood = (samples as? [HKCategorySample])?.contains {
-                    $0.value == HKCategoryValueAppleStandHour.stood.rawValue
-                } ?? false
-                cont.resume(returning: stood)
-            }
-            store.execute(q)
-        }
-    }
-    
     func startObservingEnergy() {
         guard energyObserverQuery == nil else { return }
+
         energyObserverQuery = HKObserverQuery(sampleType: energyType, predicate: nil) { [weak self] _, completion, error in
             guard error == nil else {
                 completion()
                 return
             }
-            if self?.fetching == 0 {
+
+            guard let self else {
+                completion()
+                return
+            }
+
+            if self.fetching == 0 {
                 Task {
-                    await self?.loadFromHealthKit()
+                    await self.loadFromHealthKit()
                     completion()
                 }
             } else {
@@ -396,64 +219,80 @@ class PFHealth: ObservableObject {
             }
         }
 
-        if let q = energyObserverQuery {
-            store.execute(q)
+        if let query = energyObserverQuery {
+            healthObserverStore.execute(query)
         }
-        store.enableBackgroundDelivery(for: energyType, frequency: .immediate) { _, _ in }
+        healthObserverStore.enableBackgroundDelivery(for: energyType, frequency: .immediate) { _, _ in }
     }
 
     func startObservingSteps() {
         guard stepsObserverQuery == nil else { return }
+
         stepsObserverQuery = HKObserverQuery(sampleType: stepsType, predicate: nil) { [weak self] _, completion, error in
             guard error == nil else {
                 completion()
                 return
             }
-            guard self?.trackingMode == .steps else {
+
+            guard let self else {
                 completion()
                 return
             }
-            if self?.fetching == 0 {
+
+            guard self.trackingMode == .steps else {
+                completion()
+                return
+            }
+
+            if self.fetching == 0 {
                 Task {
-                    await self?.loadFromHealthKit()
+                    await self.loadFromHealthKit()
                     completion()
                 }
             } else {
                 completion()
             }
         }
-        if let q = stepsObserverQuery {
-            store.execute(q)
+
+        if let query = stepsObserverQuery {
+            healthObserverStore.execute(query)
         }
-        store.enableBackgroundDelivery(for: stepsType, frequency: .immediate) { _, _ in }
+        healthObserverStore.enableBackgroundDelivery(for: stepsType, frequency: .immediate) { _, _ in }
     }
 
     func startObservingStandHours() {
         guard standHourObserverQuery == nil else { return }
+
         standHourObserverQuery = HKObserverQuery(sampleType: standHourType, predicate: nil) { [weak self] _, completion, error in
             guard error == nil else {
                 completion()
                 return
             }
-            if self?.fetching == 0 {
+
+            guard let self else {
+                completion()
+                return
+            }
+
+            if self.fetching == 0 {
                 Task {
-                    await self?.loadFromHealthKit()
+                    await self.loadFromHealthKit()
                     completion()
                 }
             } else {
                 completion()
             }
         }
-        if let q = standHourObserverQuery {
-            store.execute(q)
+
+        if let query = standHourObserverQuery {
+            healthObserverStore.execute(query)
         }
-        store.enableBackgroundDelivery(for: standHourType, frequency: .immediate) { _, _ in }
+        healthObserverStore.enableBackgroundDelivery(for: standHourType, frequency: .immediate) { _, _ in }
     }
-    
-    
-    
-    // widget things
-    
+
+    // This separate store keeps the observer lifecycle explicit and mirrors the old behavior.
+    private let healthObserverStore = HKHealthStore()
+
     private func mirrorToWidget() {
         SharedStore.write(
             aplGoal: aplGoal,
@@ -466,6 +305,7 @@ class PFHealth: ObservableObject {
             trackingMode: trackingMode.rawValue,
             stoodThisHour: stoodThisHour
         )
+
         #if os(iOS)
         watchSync.push(
             aplGoal: aplGoal,
@@ -479,19 +319,22 @@ class PFHealth: ObservableObject {
             stoodThisHour: stoodThisHour
         )
         #endif
+
         WidgetCenter.shared.reloadAllTimelines()
     }
-    
+
     func mirrorFromSharedStore() {
-        let r = SharedStore.read()
-        self.aplGoal =      r.aplGoal
-        self.minCals =      r.minCals
-        self.avgCals =      r.avgCals
-        self.goal =         r.goal
-        self.todaysCals =   r.todaysCals
-        self.stoodThisHour = r.stoodThisHour
-        if let mode = TrackingMode(rawValue: r.trackingMode) {
-            self.trackingMode = mode
+        let shared = SharedStore.read()
+        aplGoal = shared.aplGoal
+        minCals = shared.minCals
+        avgCals = shared.avgCals
+        goal = shared.goal
+        todaysCals = shared.todaysCals
+        todaysMinCalsGoal = shared.todaysMinCalsGoal
+        stoodThisHour = shared.stoodThisHour
+
+        if let mode = TrackingMode(rawValue: shared.trackingMode) {
+            trackingMode = mode
         }
     }
 }
@@ -506,19 +349,33 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
         session.activate()
     }
 
-    func push(aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool) {
+    // The iPhone mirrors the already-computed dashboard values so the watch can render
+    // useful fallback content even before its direct HealthKit refresh finishes.
+    func push(
+        aplGoal: Int,
+        minCals: Int,
+        avgCals: Int,
+        goal: Int,
+        todaysCals: Int,
+        todaysMinCalsGoal: Int,
+        rollingDays: Int,
+        trackingMode: String,
+        stoodThisHour: Bool
+    ) {
         guard let session else { return }
+
         let payload: [String: Any] = [
-            "aplGoal": aplGoal,
-            "minCals": minCals,
-            "avgCals": avgCals,
-            "goal": goal,
-            "todaysCals": todaysCals,
-            "todaysMinCalsGoal": todaysMinCalsGoal,
-            "rollingDays": rollingDays,
-            "trackingMode": trackingMode,
-            "stoodThisHour": stoodThisHour
+            SharedKeys.aplGoal: aplGoal,
+            SharedKeys.minCals: minCals,
+            SharedKeys.avgCals: avgCals,
+            SharedKeys.goal: goal,
+            SharedKeys.todaysCals: todaysCals,
+            SharedKeys.todaysMinCalsGoal: todaysMinCalsGoal,
+            SharedKeys.rollingDays: rollingDays,
+            SharedKeys.trackingMode: trackingMode,
+            SharedKeys.stoodThisHour: stoodThisHour,
         ]
+
         try? session.updateApplicationContext(payload)
     }
 

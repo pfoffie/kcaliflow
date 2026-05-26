@@ -62,18 +62,20 @@ kcaliflow/
 ├── kcaliflow/              # Main iPhone app
 │   ├── kcaliflowApp.swift  # App entry, onboarding gate
 │   ├── ContentView.swift   # Main dashboard with chart
-│   ├── pfHealth.swift      # HealthKit manager (ObservableObject)
+│   ├── pfHealth.swift      # iPhone state container backed by shared HealthKit reader
 │   ├── OnboardingView.swift
 │   └── InfoView.swift
 │
 ├── kcaliWatch Watch App/   # watchOS companion app
 │
-├── kcaliWidget/            # Widget + watch complications
-│   ├── kcaliWidget.swift   # Timeline provider + widget UI
-│   └── kcaliWidgetBundle.swift
+├── kcaliWidget/            # iOS widget target and iPhone-specific widget views
+│
+├── kcaliWatchWidget/       # watchOS widget target and complication views
 │
 ├── Shared/                 # Code shared across all targets
-│   └── SharedStore.swift   # UserDefaults wrapper + ring math
+│   ├── AppleHealthDataService.swift  # Shared HealthKit collection + tracking math
+│   ├── SharedStore.swift             # App Group storage + ring math
+│   └── WidgetSupport.swift           # Shared timeline entry/provider for both widget targets
 │
 └── kcaliflow.xcodeproj
 ```
@@ -84,13 +86,17 @@ kcaliflow/
 
 ```
 HealthKit
+    ├─▶ AppleHealthDataService (shared collector)
+    │       ├─▶ PFHealth (iPhone)
+    │       ├─▶ WatchHealthBridge (Watch app)
+    │       └─▶ Widget timeline provider
     ├─▶ PFHealth (iPhone)
     │       ├─▶ ContentView (live UI)
     │       ├─▶ SharedStore (App Group UserDefaults)
-    │       │       └─▶ Widget / Complications (5-min boundary refresh)
+    │       │       ├─▶ iOS Widget
+    │       │       └─▶ Watch Widget / Complications
     │       └─▶ WatchConnectivity
     │               └─▶ Watch App (shared fallback)
-    └─▶ Watch App HealthKit bridge (direct watch refresh)
 ```
 
 ---
