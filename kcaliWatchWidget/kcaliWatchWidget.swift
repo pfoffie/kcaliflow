@@ -209,3 +209,99 @@ struct kcaliWatchWidget: Widget {
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryCorner, .accessoryInline])
     }
 }
+
+// MARK: - Xcode Previews
+// ---------------------------------------------------------------------------
+// One #Preview block per supported complication family.  The canvas renders
+// each family independently so the layout can be judged without deploying to
+// a real watch.  All preview code is stripped from release builds via #if DEBUG.
+// ---------------------------------------------------------------------------
+
+#if DEBUG
+
+// ── Accessory Circular (Infograph Modular, Extra-Large) ─────────────────────
+
+/// Circular watch complication in calories mode — rings + remaining count.
+#Preview("Circular · Calories", as: .accessoryCircular) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Circular watch complication when the goal has already been met.
+#Preview("Circular · Calories (complete)", as: .accessoryCircular) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCaloriesComplete
+}
+
+/// Circular watch complication in steps mode.
+#Preview("Circular · Steps", as: .accessoryCircular) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+// ── Accessory Rectangular (Infograph Modular wide) ──────────────────────────
+
+/// Wide rectangular watch complication — bar chart + numeric row in calories mode.
+#Preview("Rectangular · Calories", as: .accessoryRectangular) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Wide rectangular complication when the goal has been met.
+#Preview("Rectangular · Calories (complete)", as: .accessoryRectangular) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCaloriesComplete
+}
+
+/// Wide rectangular watch complication in steps mode.
+#Preview("Rectangular · Steps", as: .accessoryRectangular) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+// ── Accessory Corner (Infograph sub-dial corner) ─────────────────────────────
+
+/// Corner complication — circular graphic in corner + curved label in calories mode.
+#Preview("Corner · Calories", as: .accessoryCorner) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Corner complication when the goal has been met.
+#Preview("Corner · Calories (complete)", as: .accessoryCorner) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCaloriesComplete
+}
+
+/// Corner complication in steps mode.
+#Preview("Corner · Steps", as: .accessoryCorner) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+// ── Accessory Inline (top row of watch face) ─────────────────────────────────
+
+/// Single-line inline complication showing the icon + remaining amount in calories mode.
+#Preview("Inline · Calories", as: .accessoryInline) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Single-line inline complication in steps mode.
+#Preview("Inline · Steps", as: .accessoryInline) {
+    kcaliWatchWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+#endif

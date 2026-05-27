@@ -162,3 +162,86 @@ struct kcaliWidget: Widget {
         .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
+
+// MARK: - Xcode Previews
+// ---------------------------------------------------------------------------
+// One #Preview block per supported widget family so the Xcode canvas shows
+// each surface individually.  Two data variants (calories / steps) are added
+// for the most information-dense families so edge-cases are visible at a glance.
+// All preview code is stripped from release builds by the #if DEBUG guard.
+// ---------------------------------------------------------------------------
+
+#if DEBUG
+
+// ── System Small ────────────────────────────────────────────────────────────
+
+/// Home-screen small widget in calories mode — the "normal" in-progress state.
+#Preview("Small · Calories", as: .systemSmall) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Home-screen small widget after the daily goal has been reached.
+#Preview("Small · Calories (complete)", as: .systemSmall) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewCaloriesComplete
+}
+
+/// Home-screen small widget in steps mode.
+#Preview("Small · Steps", as: .systemSmall) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+// ── Accessory Circular (Lock Screen / StandBy) ──────────────────────────────
+
+/// Circular lock-screen / StandBy complication in calories mode.
+#Preview("Circular · Calories", as: .accessoryCircular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Circular lock-screen / StandBy complication in steps mode.
+#Preview("Circular · Steps", as: .accessoryCircular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+// ── Accessory Rectangular (Lock Screen / StandBy) ───────────────────────────
+
+/// Rectangular lock-screen complication showing today vs. average in calories mode.
+#Preview("Rectangular · Calories", as: .accessoryRectangular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Rectangular lock-screen complication in steps mode.
+#Preview("Rectangular · Steps", as: .accessoryRectangular) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+// ── Accessory Inline (Lock Screen) ──────────────────────────────────────────
+
+/// Single-line inline lock-screen complication in calories mode.
+#Preview("Inline · Calories", as: .accessoryInline) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewCalories
+}
+
+/// Single-line inline lock-screen complication in steps mode.
+#Preview("Inline · Steps", as: .accessoryInline) {
+    kcaliWidget()
+} timeline: {
+    KcaliEntry.previewSteps
+}
+
+#endif

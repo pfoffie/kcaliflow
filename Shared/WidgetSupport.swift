@@ -259,6 +259,8 @@ struct KcaliTimelineProvider: TimelineProvider {
         }
     }
 
+    /// Fallback: count stand-hour category samples for today when the
+    /// activity-summary query returns nothing (e.g. watchOS extension).
     private func fetchStandingHoursFromSamplesToday() async throws -> Int {
         let type = HKCategoryType.categoryType(forIdentifier: .appleStandHour)!
         let calendar = Calendar.current
@@ -283,3 +285,67 @@ struct KcaliTimelineProvider: TimelineProvider {
         }
     }
 }
+
+// MARK: - Preview Sample Data
+
+#if DEBUG
+extension KcaliEntry {
+    // -------------------------------------------------------------------------
+    // These sample entries are used exclusively in Xcode's canvas previews.
+    // They are compiled out of release builds via the #if DEBUG guard above.
+    // -------------------------------------------------------------------------
+
+    /// A realistic *calories* entry that places today's burn at ~84 % of the
+    /// daily target, with a healthy rolling average and 7/12 standing hours.
+    static var previewCalories: KcaliEntry {
+        KcaliEntry(
+            date: .now,
+            aplGoal: 520,          // Apple Move goal in active kcal
+            minCals: 1_200,        // historical minimum (lowest active day in window)
+            avgCals: 1_800,        // weighted rolling average
+            goal: 1_600,           // user-defined daily calorie target
+            todaysCals: 1_350,     // calories burned so far today
+            todaysMinCalsGoal: 1_400, // today's derived minimum calorie target
+            isSteps: false,
+            standingHours: 7,
+            standingGoal: 12,
+            stoodThisHour: true    // the current hour counts as a stood hour
+        )
+    }
+
+    /// Like `previewCalories` but with the goal met — useful to preview the
+    /// "complete" state (filled rings, no remaining count label).
+    static var previewCaloriesComplete: KcaliEntry {
+        KcaliEntry(
+            date: .now,
+            aplGoal: 520,
+            minCals: 1_200,
+            avgCals: 1_800,
+            goal: 1_600,
+            todaysCals: 1_750,     // over target → completion state
+            todaysMinCalsGoal: 1_400,
+            isSteps: false,
+            standingHours: 12,
+            standingGoal: 12,
+            stoodThisHour: true
+        )
+    }
+
+    /// A realistic *steps* entry at roughly 65 % of a 10 000-step goal.
+    static var previewSteps: KcaliEntry {
+        KcaliEntry(
+            date: .now,
+            aplGoal: 0,            // aplGoal is not relevant in steps mode
+            minCals: 4_000,        // historical minimum (lowest step count in window)
+            avgCals: 7_800,        // weighted rolling step average
+            goal: 10_000,          // user-defined daily step target
+            todaysCals: 6_500,     // steps logged so far today
+            todaysMinCalsGoal: 10_000,
+            isSteps: true,
+            standingHours: 5,
+            standingGoal: 12,
+            stoodThisHour: false
+        )
+    }
+}
+#endif
