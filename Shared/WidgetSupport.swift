@@ -300,12 +300,12 @@ extension KcaliEntry {
     static var previewCalories: KcaliEntry {
         KcaliEntry(
             date: .now,
-            aplGoal: 520,          // Apple Move goal in active kcal
-            minCals: 1_200,        // historical minimum (lowest active day in window)
-            avgCals: 1_800,        // weighted rolling average
-            goal: 1_600,           // user-defined daily calorie target
-            todaysCals: 1_350,     // calories burned so far today
-            todaysMinCalsGoal: 1_400, // today's derived minimum calorie target
+            aplGoal: 600,          // Apple Move goal in active kcal
+            minCals: 300,        // historical minimum (lowest active day in window)
+            avgCals: 1113,        // weighted rolling average
+            goal: 987,           // user-defined daily calorie target
+            todaysCals: 88,     // calories burned so far today
+            todaysMinCalsGoal: 0, // today's derived minimum calorie target
             isSteps: false,
             standingHours: 7,
             standingGoal: 12,

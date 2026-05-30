@@ -96,7 +96,8 @@ struct ContentView: View {
             .cornerRadius(12)
             
             if pf.trackingMode == .calories &&
-                pf.aplGoal > pf.todaysMinCalsGoal{
+                pf.aplGoal > pf.todaysMinCalsGoal &&
+                pf.todaysCals < pf.aplGoal{
                 VStack(spacing: 0) {
                     Button {
                         openFitnessToday()

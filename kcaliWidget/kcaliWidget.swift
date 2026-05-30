@@ -39,9 +39,16 @@ private struct IOSHomeWidgetView: View {
                 }
 
                 VStack {
+                    
+                    if(entry.primaryTarget == entry.aplGoal && entry.primaryTarget > entry.todaysCals){
+                        Text("")
+                    }
                     Text("\(entry.todaysCals) / \(entry.primaryTarget)")
                     Text("ø \(entry.avgCals) / \(entry.goal)")
                         .font(.caption2)
+                    if(entry.primaryTarget == entry.aplGoal && entry.primaryTarget > entry.todaysCals){
+                        Text(" ")
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
