@@ -62,6 +62,36 @@ struct SharedStore {
             defaults.bool(forKey: SharedKeys.stoodThisHour)
         )
     }
+
+    static func readSnapshot() -> SharedSnapshot {
+        let values = read()
+        return SharedSnapshot(
+            aplGoal: values.aplGoal,
+            minCals: values.minCals,
+            avgCals: values.avgCals,
+            goal: values.goal,
+            todaysCals: values.todaysCals,
+            todaysMinCalsGoal: values.todaysMinCalsGoal,
+            rollingDays: values.rollingDays,
+            trackingMode: values.trackingMode,
+            stoodThisHour: values.stoodThisHour
+        )
+    }
+}
+
+struct SharedSnapshot {
+    let aplGoal: Int
+    let minCals: Int
+    let avgCals: Int
+    let goal: Int
+    let todaysCals: Int
+    let todaysMinCalsGoal: Int
+    let rollingDays: Int
+    let trackingMode: String
+    let stoodThisHour: Bool
+
+    var isSteps: Bool { trackingMode == "steps" }
+    var usesAppleMoveGoal: Bool { !isSteps && aplGoal > todaysMinCalsGoal }
 }
 
 enum SharedRingType: String, Codable {
