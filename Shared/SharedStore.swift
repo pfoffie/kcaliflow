@@ -13,12 +13,6 @@ enum SharedKeys {
     static let stoodThisHour     = "stoodThisHour"
 }
 
-struct SharedTrackingSettings {
-    let trackingMode: TrackingMode
-    let goal: Int
-    let rollingDays: Int
-}
-
 struct SharedStore {
     static let defaults = UserDefaults(suiteName: "group.ch.enjor.health")!
 
@@ -69,21 +63,35 @@ struct SharedStore {
         )
     }
 
-    static func readTrackingSettings() -> SharedTrackingSettings {
-        let mode = TrackingMode(
-            rawValue: defaults.string(forKey: SharedKeys.trackingMode) ?? TrackingMode.calories.rawValue
-        ) ?? .calories
-
-        let goal: Int
-        if defaults.object(forKey: SharedKeys.goal) != nil {
-            goal = defaults.integer(forKey: SharedKeys.goal)
-        } else {
-            goal = TrackingDefaults.goal(for: mode)
-        }
-
-        let rollingDays = (defaults.object(forKey: SharedKeys.rollingDays) as? Int) ?? 7
-        return SharedTrackingSettings(trackingMode: mode, goal: goal, rollingDays: rollingDays)
+    static func readSnapshot() -> SharedSnapshot {
+        let values = read()
+        return SharedSnapshot(
+            aplGoal: values.aplGoal,
+            minCals: values.minCals,
+            avgCals: values.avgCals,
+            goal: values.goal,
+            todaysCals: values.todaysCals,
+            todaysMinCalsGoal: values.todaysMinCalsGoal,
+            rollingDays: values.rollingDays,
+            trackingMode: values.trackingMode,
+            stoodThisHour: values.stoodThisHour
+        )
     }
+}
+
+struct SharedSnapshot {
+    let aplGoal: Int
+    let minCals: Int
+    let avgCals: Int
+    let goal: Int
+    let todaysCals: Int
+    let todaysMinCalsGoal: Int
+    let rollingDays: Int
+    let trackingMode: String
+    let stoodThisHour: Bool
+
+    var isSteps: Bool { trackingMode == "steps" }
+    var usesAppleMoveGoal: Bool { !isSteps && aplGoal > todaysMinCalsGoal }
 }
 
 enum SharedRingType: String, Codable {

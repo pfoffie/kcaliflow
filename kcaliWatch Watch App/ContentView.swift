@@ -2,83 +2,43 @@
 //  ContentView.swift
 //  kcaliWatch Watch App
 //
-//  Created by Rene Jossen on 11.04.2026.
+//  Created by René Jossen on 11.04.2026.
 //
 
 import SwiftUI
 import Combine
 import WatchConnectivity
 import WidgetKit
-import HealthKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var healthBridge = WatchHealthBridge()
     @State private var model = WatchWidgetVisualModel.load()
-    @State private var syncedSettings = SharedStore.readTrackingSettings()
-    @State private var showSettingsPanel = false
-    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         WatchWidgetVisualView(model: model)
             .padding(6)
-            .overlay(alignment: .topTrailing) {
-                Button {
-                    syncedSettings = SharedStore.readTrackingSettings()
-                    showSettingsPanel = true
-                } label: {
-                    Image(systemName: "info.circle")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 6)
-                .padding(.trailing, 6)
-            }
             .onAppear {
                 WatchSyncListener.shared.activate()
-                syncedSettings = SharedStore.readTrackingSettings()
-                model = .load(healthSnapshot: healthBridge.snapshot)
+                reloadModel()
                 WidgetCenter.shared.reloadAllTimelines()
-
-                Task {
-                    await healthBridge.refresh(force: true)
-                    model = .load(healthSnapshot: healthBridge.snapshot)
-                    syncedSettings = SharedStore.readTrackingSettings()
-                }
             }
-            .onReceive(timer) { _ in
-                Task {
-                    await healthBridge.refresh()
-                    model = .load(healthSnapshot: healthBridge.snapshot)
-                    syncedSettings = SharedStore.readTrackingSettings()
-                }
-            }
-            .onChange(of: healthBridge.snapshot?.timestamp) { _, _ in
-                model = .load(healthSnapshot: healthBridge.snapshot)
+            .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
+                reloadModel()
             }
             .onChange(of: scenePhase) { _, newPhase in
                 guard newPhase == .active else { return }
-
-                Task {
-                    await healthBridge.refresh(force: true)
-                    model = .load(healthSnapshot: healthBridge.snapshot)
-                    syncedSettings = SharedStore.readTrackingSettings()
-                    WidgetCenter.shared.reloadAllTimelines()
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .watchSyncContextDidUpdate)) { _ in
-                syncedSettings = SharedStore.readTrackingSettings()
-                Task {
-                    await healthBridge.refresh(force: true)
-                    model = .load(healthSnapshot: healthBridge.snapshot)
-                    syncedSettings = SharedStore.readTrackingSettings()
-                }
-            }
-            .sheet(isPresented: $showSettingsPanel) {
-                WatchSettingsPanel(settings: syncedSettings)
+                reloadModel()
+                WidgetCenter.shared.reloadAllTimelines()
             }
     }
+
+    private func reloadModel() {
+        model = .load()
+    }
+}
+
+private extension Notification.Name {
+    static let watchSharedStoreDidUpdate = Notification.Name("watchSharedStoreDidUpdate")
 }
 
 private struct WatchWidgetVisualModel {
@@ -102,152 +62,30 @@ private struct WatchWidgetVisualModel {
         )
     }
 
-    // The watch always starts from synced App Group values and upgrades to a direct
-    // HealthKit-backed snapshot as soon as the shared collector finishes.
-    static func load(healthSnapshot: WatchHealthSnapshot? = nil) -> WatchWidgetVisualModel {
-        let shared = SharedStore.read()
-        let settings = SharedStore.readTrackingSettings()
-        let trackingMode = settings.trackingMode
-        var aplGoal = shared.aplGoal
-        var avgCals = shared.avgCals
-        let goal = settings.goal
-        var todaysCals = shared.todaysCals
-        var todaysMinCalsGoal = max(shared.todaysMinCalsGoal, 1)
-        var stoodThisHour = shared.stoodThisHour
-
-        if let healthSnapshot,
-           healthSnapshot.trackingMode == trackingMode,
-           healthSnapshot.goal == goal {
-            aplGoal = healthSnapshot.aplGoal
-            avgCals = healthSnapshot.averageValue
-            todaysCals = healthSnapshot.todaysValue
-            todaysMinCalsGoal = max(healthSnapshot.todaysMinimumGoal, 1)
-            stoodThisHour = healthSnapshot.stoodThisHour
-        }
-
-        return WatchWidgetVisualModel(
-            aplGoal: aplGoal,
-            avgCals: avgCals,
-            goal: goal,
-            todaysCals: todaysCals,
-            todaysMinCalsGoal: todaysMinCalsGoal,
-            isSteps: trackingMode == .steps,
-            stoodThisHour: stoodThisHour
-        )
-    }
-}
-
-struct WatchHealthSnapshot {
-    let timestamp: Date
-    let trackingMode: TrackingMode
-    let goal: Int
-    let aplGoal: Int
-    let todaysValue: Int
-    let averageValue: Int
-    let todaysMinimumGoal: Int
-    let stoodThisHour: Bool
-}
-
-@MainActor
-private final class WatchHealthBridge: ObservableObject {
-    @Published private(set) var snapshot: WatchHealthSnapshot?
-
-    private let healthService = AppleHealthDataService()
-    private var hasRequestedAuthorization = false
-    private var lastRefresh: Date = .distantPast
-
-    func refresh(force: Bool = false) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
-        guard force || Date().timeIntervalSince(lastRefresh) >= 5 * 60 else { return }
-
-        do {
-            if !hasRequestedAuthorization {
-                try await healthService.requestAuthorization()
-                hasRequestedAuthorization = true
-            }
-
-            let settings = SharedStore.readTrackingSettings()
-            let trackingMode = settings.trackingMode
-            let collection = try await healthService.fetchCollection(last: 30, mode: trackingMode)
-            let metrics = TrackingMath.makeMetrics(
-                from: collection,
-                goal: settings.goal,
-                rollingDays: settings.rollingDays,
-                maxDays: 30
-            )
-
-            snapshot = WatchHealthSnapshot(
-                timestamp: Date(),
-                trackingMode: trackingMode,
-                goal: settings.goal,
-                aplGoal: metrics.appleMoveGoal,
-                todaysValue: metrics.todaysValue,
-                averageValue: metrics.weightedAverage,
-                todaysMinimumGoal: metrics.requiredToday,
-                stoodThisHour: metrics.stoodThisHour
-            )
-
-            lastRefresh = Date()
-        } catch {
-            // The watch intentionally keeps the last synced/shared values as a safe fallback.
-        }
-    }
-}
-
-private struct WatchSettingsPanel: View {
-    @Environment(\.dismiss) private var dismiss
-    let settings: SharedTrackingSettings
-
-    var body: some View {
-        NavigationStack {
-            List {
-                settingsRow(
-                    label: String(localized: "setting_tracking_mode"),
-                    value: String(localized: settings.trackingMode == .steps ? "mode_steps" : "mode_calories")
-                )
-
-                settingsRow(
-                    label: String(localized: settings.trackingMode == .steps ? "setting_goal_steps" : "setting_goal_kcal"),
-                    value: "\(settings.goal)"
-                )
-
-                Text(
-                    String(localized: "setting_avg_days")
-                        .replacingOccurrences(of: "{days}", with: "\(settings.rollingDays)")
-                )
-                .foregroundStyle(.secondary)
-
-                Text("watch_settings_synced_note")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            .navigationTitle(String(localized: "info_page_settings_title"))
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(String(localized: "button_done")) { dismiss() }
-                }
-            }
-        }
+    var usesAppleMoveGoal: Bool {
+        !isSteps && aplGoal > todaysMinCalsGoal
     }
 
-    @ViewBuilder
-    private func settingsRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            Text(value)
-                .foregroundStyle(.secondary)
-        }
+    static func load() -> WatchWidgetVisualModel {
+        WatchWidgetVisualModel(snapshot: SharedStore.readSnapshot())
+    }
+
+    init(snapshot: SharedSnapshot) {
+        aplGoal = snapshot.aplGoal
+        avgCals = snapshot.avgCals
+        goal = snapshot.goal
+        todaysCals = snapshot.todaysCals
+        todaysMinCalsGoal = snapshot.todaysMinCalsGoal
+        isSteps = snapshot.isSteps
+        stoodThisHour = snapshot.stoodThisHour
     }
 }
 
 private final class WatchSyncListener: NSObject, WCSessionDelegate {
     static let shared = WatchSyncListener()
-    private let defaults = SharedStore.defaults
 
     func activate() {
         guard WCSession.isSupported() else { return }
-
         let session = WCSession.default
         session.delegate = self
         session.activate()
@@ -261,24 +99,22 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         apply(applicationContext: applicationContext)
     }
 
-    // The app group is the handoff point for the watch app and watch widget.
-    // We mirror every synced dashboard field so both can boot quickly from shared state.
     private func apply(applicationContext: [String: Any]) {
-        if let value = applicationContext[SharedKeys.aplGoal] as? Int { defaults.set(value, forKey: SharedKeys.aplGoal) }
-        if let value = applicationContext[SharedKeys.minCals] as? Int { defaults.set(value, forKey: SharedKeys.minCals) }
-        if let value = applicationContext[SharedKeys.avgCals] as? Int { defaults.set(value, forKey: SharedKeys.avgCals) }
-        if let value = applicationContext[SharedKeys.goal] as? Int { defaults.set(value, forKey: SharedKeys.goal) }
-        if let value = applicationContext[SharedKeys.todaysCals] as? Int { defaults.set(value, forKey: SharedKeys.todaysCals) }
-        if let value = applicationContext[SharedKeys.todaysMinCalsGoal] as? Int { defaults.set(value, forKey: SharedKeys.todaysMinCalsGoal) }
-        if let value = applicationContext[SharedKeys.rollingDays] as? Int { defaults.set(value, forKey: SharedKeys.rollingDays) }
-        if let value = applicationContext[SharedKeys.trackingMode] as? String { defaults.set(value, forKey: SharedKeys.trackingMode) }
-        if let value = applicationContext[SharedKeys.stoodThisHour] as? Bool { defaults.set(value, forKey: SharedKeys.stoodThisHour) }
+        guard !applicationContext.isEmpty else { return }
 
-        WidgetCenter.shared.reloadAllTimelines()
+        if let v = applicationContext[SharedKeys.aplGoal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.aplGoal) }
+        if let v = applicationContext[SharedKeys.minCals] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.minCals) }
+        if let v = applicationContext[SharedKeys.avgCals] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.avgCals) }
+        if let v = applicationContext[SharedKeys.goal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goal) }
+        if let v = applicationContext[SharedKeys.todaysCals] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.todaysCals) }
+        if let v = applicationContext[SharedKeys.todaysMinCalsGoal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.todaysMinCalsGoal) }
+        if let v = applicationContext[SharedKeys.rollingDays] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.rollingDays) }
+        if let v = applicationContext[SharedKeys.trackingMode] as? String { SharedStore.defaults.set(v, forKey: SharedKeys.trackingMode) }
+        if let v = applicationContext[SharedKeys.stoodThisHour] as? Bool { SharedStore.defaults.set(v, forKey: SharedKeys.stoodThisHour) }
 
-        // Notify ContentView so it can re-fetch HealthKit with the updated settings.
         DispatchQueue.main.async {
-            NotificationCenter.default.post(name: .watchSyncContextDidUpdate, object: nil)
+            WidgetCenter.shared.reloadAllTimelines()
+            NotificationCenter.default.post(name: .watchSharedStoreDidUpdate, object: nil)
         }
     }
 }
@@ -291,12 +127,10 @@ private struct WatchWidgetVisualView: View {
     }
 
     var body: some View {
-        ZStack {
-            GeometryReader { geometry in
-                let anchor = (geometry.size.width + geometry.size.height) / 2
-                let target = model.ringInput.primaryTarget
+        GeometryReader { geo in
+            let anchor = (geo.size.width + geo.size.height) / 2
 
-                // The same shared ring generator drives the watch app and both widget targets.
+            ZStack {
                 ForEach(rings) { ring in
                     let diameter = anchor * ring.position
 
@@ -305,20 +139,30 @@ private struct WatchWidgetVisualView: View {
                             .stroke(style: StrokeStyle(lineWidth: 2))
                             .foregroundStyle(ring.color)
                             .frame(width: diameter, height: diameter)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                            .position(x: geo.size.width / 2, y: geo.size.height / 2)
                     } else {
                         Circle()
                             .fill(ring.color)
                             .frame(width: diameter, height: diameter)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                            .position(x: geo.size.width / 2, y: geo.size.height / 2)
                     }
                 }
 
-                VStack {
-                    Text("\(model.todaysCals) / \(target)")
+                VStack(spacing: 2) {
+                    if model.usesAppleMoveGoal {
+                        Text(" \(model.aplGoal)")
+                            .font(.caption2)
+                    }
+
+                    Text("\(model.todaysCals) / \(model.todaysMinCalsGoal)")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+
                     Text("ø \(model.avgCals) / \(model.goal)")
                         .font(.caption2)
                 }
+                .monospacedDigit()
+                .minimumScaleFactor(0.6)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
@@ -327,8 +171,4 @@ private struct WatchWidgetVisualView: View {
 
 #Preview {
     ContentView()
-}
-
-private extension Notification.Name {
-    static let watchSyncContextDidUpdate = Notification.Name("watchSyncContextDidUpdate")
 }
