@@ -29,6 +29,25 @@ struct KcaliEntry: TimelineEntry {
 }
 
 extension KcaliEntry {
+    /// Realistic sample entry used as the system placeholder and for widget-gallery
+    /// snapshots when no stored or live data is available yet.  Available in all build
+    /// configurations so widget targets can reference it without DEBUG guards.
+    static var sample: KcaliEntry {
+        KcaliEntry(
+            date: .now,
+            aplGoal: 560,
+            minCals: 300,
+            avgCals: 1_050,
+            goal: 880,
+            todaysCals: 420,
+            todaysMinCalsGoal: 520,
+            isSteps: false,
+            standingHours: 6,
+            standingGoal: 12,
+            stoodThisHour: false
+        )
+    }
+
     init(from shared: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool)) {
         let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
         let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
@@ -105,11 +124,17 @@ struct KcaliTimelineProvider: TimelineProvider {
     private static let lookbackDays = 30
 
     func placeholder(in context: Context) -> KcaliEntry {
-        KcaliEntry(from: SharedStore.read())
+        // The system renders this view redacted (gray bars) while waiting for real data.
+        // Returning a realistic sample gives it the correct visual shape to skeleton.
+        let stored = KcaliEntry(from: SharedStore.read())
+        return hasMeaningfulData(stored) ? stored : .sample
     }
 
     func getSnapshot(in context: Context, completion: @escaping (KcaliEntry) -> Void) {
-        completion(KcaliEntry(from: SharedStore.read()))
+        let stored = KcaliEntry(from: SharedStore.read())
+        // In the widget gallery (isPreview) or when no data has synced yet, show a
+        // realistic sample so the complication looks useful rather than all-zeros.
+        completion(context.isPreview && !hasMeaningfulData(stored) ? .sample : stored)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<KcaliEntry>) -> Void) {
@@ -123,9 +148,23 @@ struct KcaliTimelineProvider: TimelineProvider {
     private func fetchEntry() async -> KcaliEntry {
         let shared = SharedStore.read()
         let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
+        let sharedEntry = KcaliEntry(from: shared)
+
+        // Fast path – SharedStore already has real values (written by the Watch App
+        // after a WatchConnectivity sync or by the iOS widget after a HealthKit refresh).
+        // Returning immediately keeps getTimeline well within watchOS's tight background
+        // execution budget, preventing the system from killing the extension before
+        // completion() is called (which would leave the placeholder on screen forever).
+        if hasMeaningfulData(sharedEntry) {
+            cache(entry: sharedEntry, trackingMode: shared.trackingMode)
+            return sharedEntry
+        }
+
+        // Slow path – SharedStore is empty (first launch / watch not yet synced).
+        // Fall back to a live HealthKit read.
         let cached = cachedEntry(trackingMode: shared.trackingMode)
         let live = try? await buildLiveEntry(shared: shared, trackingMode: trackingMode)
-        var entry = live ?? KcaliEntry(from: shared)
+        var entry = live ?? sharedEntry
 
         if isLikelyPlaceholder(entry), let cached {
             entry = cached
@@ -136,6 +175,12 @@ struct KcaliTimelineProvider: TimelineProvider {
         }
 
         return entry
+    }
+
+    /// Returns true when SharedStore contains at least one non-zero metric, indicating
+    /// that a real data sync has occurred and the entry is worth displaying.
+    private func hasMeaningfulData(_ entry: KcaliEntry) -> Bool {
+        entry.todaysCals > 0 || entry.avgCals > 0
     }
 
     private func buildLiveEntry(
