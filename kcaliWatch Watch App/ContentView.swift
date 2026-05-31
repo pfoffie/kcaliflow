@@ -15,25 +15,43 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var healthBridge = WatchHealthBridge()
     @State private var model = WatchWidgetVisualModel.load()
+    @State private var syncedSettings = SharedStore.readTrackingSettings()
+    @State private var showSettingsPanel = false
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         WatchWidgetVisualView(model: model)
             .padding(6)
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    syncedSettings = SharedStore.readTrackingSettings()
+                    showSettingsPanel = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 6)
+                .padding(.trailing, 6)
+            }
             .onAppear {
                 WatchSyncListener.shared.activate()
+                syncedSettings = SharedStore.readTrackingSettings()
                 model = .load(healthSnapshot: healthBridge.snapshot)
                 WidgetCenter.shared.reloadAllTimelines()
 
                 Task {
                     await healthBridge.refresh(force: true)
                     model = .load(healthSnapshot: healthBridge.snapshot)
+                    syncedSettings = SharedStore.readTrackingSettings()
                 }
             }
             .onReceive(timer) { _ in
                 Task {
                     await healthBridge.refresh()
                     model = .load(healthSnapshot: healthBridge.snapshot)
+                    syncedSettings = SharedStore.readTrackingSettings()
                 }
             }
             .onChange(of: healthBridge.snapshot?.timestamp) { _, _ in
@@ -45,14 +63,20 @@ struct ContentView: View {
                 Task {
                     await healthBridge.refresh(force: true)
                     model = .load(healthSnapshot: healthBridge.snapshot)
+                    syncedSettings = SharedStore.readTrackingSettings()
                     WidgetCenter.shared.reloadAllTimelines()
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .watchSyncContextDidUpdate)) { _ in
+                syncedSettings = SharedStore.readTrackingSettings()
                 Task {
                     await healthBridge.refresh(force: true)
                     model = .load(healthSnapshot: healthBridge.snapshot)
+                    syncedSettings = SharedStore.readTrackingSettings()
                 }
+            }
+            .sheet(isPresented: $showSettingsPanel) {
+                WatchSettingsPanel(settings: syncedSettings)
             }
     }
 }
@@ -82,19 +106,20 @@ private struct WatchWidgetVisualModel {
     // HealthKit-backed snapshot as soon as the shared collector finishes.
     static func load(healthSnapshot: WatchHealthSnapshot? = nil) -> WatchWidgetVisualModel {
         let shared = SharedStore.read()
-        var trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
+        let settings = SharedStore.readTrackingSettings()
+        let trackingMode = settings.trackingMode
         var aplGoal = shared.aplGoal
         var avgCals = shared.avgCals
-        var goal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
+        let goal = settings.goal
         var todaysCals = shared.todaysCals
         var todaysMinCalsGoal = max(shared.todaysMinCalsGoal, 1)
         var stoodThisHour = shared.stoodThisHour
 
-        if let healthSnapshot {
-            trackingMode = healthSnapshot.trackingMode
+        if let healthSnapshot,
+           healthSnapshot.trackingMode == trackingMode,
+           healthSnapshot.goal == goal {
             aplGoal = healthSnapshot.aplGoal
             avgCals = healthSnapshot.averageValue
-            goal = healthSnapshot.goal
             todaysCals = healthSnapshot.todaysValue
             todaysMinCalsGoal = max(healthSnapshot.todaysMinimumGoal, 1)
             stoodThisHour = healthSnapshot.stoodThisHour
@@ -141,21 +166,20 @@ private final class WatchHealthBridge: ObservableObject {
                 hasRequestedAuthorization = true
             }
 
-            let shared = SharedStore.read()
-            let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
-            let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
+            let settings = SharedStore.readTrackingSettings()
+            let trackingMode = settings.trackingMode
             let collection = try await healthService.fetchCollection(last: 30, mode: trackingMode)
             let metrics = TrackingMath.makeMetrics(
                 from: collection,
-                goal: resolvedGoal,
-                rollingDays: shared.rollingDays,
+                goal: settings.goal,
+                rollingDays: settings.rollingDays,
                 maxDays: 30
             )
 
             snapshot = WatchHealthSnapshot(
                 timestamp: Date(),
                 trackingMode: trackingMode,
-                goal: resolvedGoal,
+                goal: settings.goal,
                 aplGoal: metrics.appleMoveGoal,
                 todaysValue: metrics.todaysValue,
                 averageValue: metrics.weightedAverage,
@@ -166,6 +190,53 @@ private final class WatchHealthBridge: ObservableObject {
             lastRefresh = Date()
         } catch {
             // The watch intentionally keeps the last synced/shared values as a safe fallback.
+        }
+    }
+}
+
+private struct WatchSettingsPanel: View {
+    @Environment(\.dismiss) private var dismiss
+    let settings: SharedTrackingSettings
+
+    var body: some View {
+        NavigationStack {
+            List {
+                settingsRow(
+                    label: String(localized: "setting_tracking_mode"),
+                    value: String(localized: settings.trackingMode == .steps ? "mode_steps" : "mode_calories")
+                )
+
+                settingsRow(
+                    label: String(localized: settings.trackingMode == .steps ? "setting_goal_steps" : "setting_goal_kcal"),
+                    value: "\(settings.goal)"
+                )
+
+                Text(
+                    String(localized: "setting_avg_days")
+                        .replacingOccurrences(of: "{days}", with: "\(settings.rollingDays)")
+                )
+                .foregroundStyle(.secondary)
+
+                Text("watch_settings_synced_note")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .navigationTitle(String(localized: "info_page_settings_title"))
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(String(localized: "button_done")) { dismiss() }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func settingsRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(value)
+                .foregroundStyle(.secondary)
         }
     }
 }

@@ -34,6 +34,7 @@
 "legend_avgGoal" = "Average Goal";
 
 "button_done" = "OK";
+"watch_settings_synced_note" = "These values are synced from the iPhone app.";
 
 // MARK: – Onboarding
 

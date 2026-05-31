@@ -13,6 +13,12 @@ enum SharedKeys {
     static let stoodThisHour     = "stoodThisHour"
 }
 
+struct SharedTrackingSettings {
+    let trackingMode: TrackingMode
+    let goal: Int
+    let rollingDays: Int
+}
+
 struct SharedStore {
     static let defaults = UserDefaults(suiteName: "group.ch.enjor.health")!
 
@@ -61,6 +67,22 @@ struct SharedStore {
             defaults.string(forKey: SharedKeys.trackingMode) ?? "calories",
             defaults.bool(forKey: SharedKeys.stoodThisHour)
         )
+    }
+
+    static func readTrackingSettings() -> SharedTrackingSettings {
+        let mode = TrackingMode(
+            rawValue: defaults.string(forKey: SharedKeys.trackingMode) ?? TrackingMode.calories.rawValue
+        ) ?? .calories
+
+        let goal: Int
+        if defaults.object(forKey: SharedKeys.goal) != nil {
+            goal = defaults.integer(forKey: SharedKeys.goal)
+        } else {
+            goal = TrackingDefaults.goal(for: mode)
+        }
+
+        let rollingDays = (defaults.object(forKey: SharedKeys.rollingDays) as? Int) ?? 7
+        return SharedTrackingSettings(trackingMode: mode, goal: goal, rollingDays: rollingDays)
     }
 }
 

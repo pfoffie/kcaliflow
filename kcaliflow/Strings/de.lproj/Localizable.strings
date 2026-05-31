@@ -34,6 +34,7 @@
 "legend_avgGoal" = "Durchschnittsziel";
 
 "button_done" = "OK";
+"watch_settings_synced_note" = "Diese Werte werden von der iPhone-App synchronisiert.";
 
 // MARK: – Onboarding
 
