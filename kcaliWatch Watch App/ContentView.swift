@@ -150,12 +150,17 @@ private struct WatchWidgetVisualView: View {
 
                 VStack(spacing: 2) {
                     if model.usesAppleMoveGoal {
-                        Text(" \(model.aplGoal)")
+                        Text("")
                             .font(.caption2)
+                        
+                        Text("\(model.todaysCals) / \(model.aplGoal)")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    }else{
+
+                        Text("\(model.todaysCals) / \(model.todaysMinCalsGoal)")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
                     }
 
-                    Text("\(model.todaysCals) / \(model.todaysMinCalsGoal)")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
 
                     Text("ø \(model.avgCals) / \(model.goal)")
                         .font(.caption2)
