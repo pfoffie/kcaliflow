@@ -48,6 +48,12 @@ struct ContentView: View {
                     WidgetCenter.shared.reloadAllTimelines()
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .watchSyncContextDidUpdate)) { _ in
+                Task {
+                    await healthBridge.refresh(force: true)
+                    model = .load(healthSnapshot: healthBridge.snapshot)
+                }
+            }
     }
 }
 
@@ -198,6 +204,11 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         if let value = applicationContext[SharedKeys.stoodThisHour] as? Bool { defaults.set(value, forKey: SharedKeys.stoodThisHour) }
 
         WidgetCenter.shared.reloadAllTimelines()
+
+        // Notify ContentView so it can re-fetch HealthKit with the updated settings.
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .watchSyncContextDidUpdate, object: nil)
+        }
     }
 }
 
@@ -245,4 +256,8 @@ private struct WatchWidgetVisualView: View {
 
 #Preview {
     ContentView()
+}
+
+private extension Notification.Name {
+    static let watchSyncContextDidUpdate = Notification.Name("watchSyncContextDidUpdate")
 }
