@@ -118,25 +118,46 @@ private struct WatchCornerComplicationView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let anchor = (geometry.size.width + geometry.size.height) / 2.6
+            let anchor = min(geometry.size.width, geometry.size.height) - 2.0
 
-            ZStack {
-                ForEach(rings) { ring in
-                    let diameter = anchor * ring.position
-
-                    if ring.type == .line {
-                        Circle()
-                            .stroke(style: StrokeStyle(lineWidth: 1))
-                            .foregroundStyle(ring.color)
-                            .frame(width: diameter, height: diameter)
-                    } else {
-                        Circle()
-                            .fill(ring.color)
-                            .frame(width: diameter, height: diameter)
+            if entry.todaysCals < entry.primaryTarget {
+                ZStack {
+                    ForEach(rings) { ring in
+                        let diameter = min(anchor,anchor * ring.position)
+                        
+                        if ring.type == .line {
+                            Circle()
+                                .stroke(style: StrokeStyle(lineWidth: 1))
+                                .foregroundStyle(ring.color)
+                                .frame(width: diameter, height: diameter)
+                        } else {
+                            Circle()
+                                .fill(ring.color)
+                                .frame(width: diameter, height: diameter)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }else{
+                ZStack {
+                    Circle()
+                        .stroke(style: StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(Color.green)
+                        .frame(width: anchor*0.8, height: anchor*0.8)
+                    
+                    Circle()
+                        .fill(Color.green.opacity(0.18))
+                        .frame(width: anchor, height: anchor)
+                    
+                    if(entry.stoodThisHour){
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: anchor*0.6, height: anchor*0.6)
+                    }
+                    
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .widgetLabel {
             if entry.todaysCals < entry.primaryTarget {
@@ -144,7 +165,7 @@ private struct WatchCornerComplicationView: View {
                 let appleMarker = (!entry.isSteps && entry.aplGoal > entry.todaysMinCalsGoal) ? " " : ""
                 Text("\(icon) \(entry.primaryTarget - entry.todaysCals)\(appleMarker)")
             } else {
-                Text(entry.stoodThisHour ? "●" : "◉")
+                //Text(entry.stoodThisHour ? "●" : "◉")
             }
         }
     }
