@@ -11,6 +11,7 @@ enum SharedKeys {
     static let rollingDays       = "rollingDays"
     static let trackingMode      = "trackingMode"
     static let stoodThisHour     = "stoodThisHour"
+    static let lastUpdated       = "lastUpdated"
 }
 
 struct SharedStore {
@@ -36,6 +37,7 @@ struct SharedStore {
         defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
         defaults.set(trackingMode, forKey: SharedKeys.trackingMode)
         defaults.set(stoodThisHour, forKey: SharedKeys.stoodThisHour)
+        defaults.set(Date(), forKey: SharedKeys.lastUpdated)
     }
 
     static func read() -> (
@@ -47,7 +49,8 @@ struct SharedStore {
         todaysMinCalsGoal: Int,
         rollingDays: Int,
         trackingMode: String,
-        stoodThisHour: Bool
+        stoodThisHour: Bool,
+        lastUpdated: Date?
     ) {
         let storedRollingDays = defaults.integer(forKey: SharedKeys.rollingDays)
         return (
@@ -59,7 +62,8 @@ struct SharedStore {
             defaults.integer(forKey: SharedKeys.todaysMinCalsGoal),
             storedRollingDays > 0 ? storedRollingDays : 7,
             defaults.string(forKey: SharedKeys.trackingMode) ?? "calories",
-            defaults.bool(forKey: SharedKeys.stoodThisHour)
+            defaults.bool(forKey: SharedKeys.stoodThisHour),
+            defaults.object(forKey: SharedKeys.lastUpdated) as? Date
         )
     }
 
@@ -74,7 +78,8 @@ struct SharedStore {
             todaysMinCalsGoal: values.todaysMinCalsGoal,
             rollingDays: values.rollingDays,
             trackingMode: values.trackingMode,
-            stoodThisHour: values.stoodThisHour
+            stoodThisHour: values.stoodThisHour,
+            lastUpdated: values.lastUpdated
         )
     }
 }
@@ -89,6 +94,7 @@ struct SharedSnapshot {
     let rollingDays: Int
     let trackingMode: String
     let stoodThisHour: Bool
+    let lastUpdated: Date?
 
     var isSteps: Bool { trackingMode == "steps" }
     var usesAppleMoveGoal: Bool { !isSteps && aplGoal > todaysMinCalsGoal }

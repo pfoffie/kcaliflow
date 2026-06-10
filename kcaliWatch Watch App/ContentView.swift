@@ -111,6 +111,11 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         if let v = applicationContext[SharedKeys.rollingDays] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.rollingDays) }
         if let v = applicationContext[SharedKeys.trackingMode] as? String { SharedStore.defaults.set(v, forKey: SharedKeys.trackingMode) }
         if let v = applicationContext[SharedKeys.stoodThisHour] as? Bool { SharedStore.defaults.set(v, forKey: SharedKeys.stoodThisHour) }
+        if let v = applicationContext[SharedKeys.lastUpdated] as? Date {
+            SharedStore.defaults.set(v, forKey: SharedKeys.lastUpdated)
+        } else {
+            SharedStore.defaults.set(Date(), forKey: SharedKeys.lastUpdated)
+        }
 
         DispatchQueue.main.async {
             WidgetCenter.shared.reloadAllTimelines()

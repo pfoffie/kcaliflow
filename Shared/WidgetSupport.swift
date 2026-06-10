@@ -48,12 +48,13 @@ extension KcaliEntry {
         )
     }
 
-    init(from shared: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool)) {
+    init(from shared: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool, lastUpdated: Date?)) {
         let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
         let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
+        let entryDate = shared.lastUpdated ?? Date.distantPast
 
         self.init(
-            date: Date(),
+            date: entryDate,
             aplGoal: shared.aplGoal,
             minCals: shared.minCals,
             avgCals: shared.avgCals,
@@ -149,13 +150,15 @@ struct KcaliTimelineProvider: TimelineProvider {
         let shared = SharedStore.read()
         let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
         let sharedEntry = KcaliEntry(from: shared)
+        let sharedIsSameDay = isSameDay(shared.lastUpdated)
+        let sharedIsFresh = isFresh(shared.lastUpdated)
 
         // Fast path – SharedStore already has real values (written by the Watch App
         // after a WatchConnectivity sync or by the iOS widget after a HealthKit refresh).
         // Returning immediately keeps getTimeline well within watchOS's tight background
         // execution budget, preventing the system from killing the extension before
         // completion() is called (which would leave the placeholder on screen forever).
-        if hasMeaningfulData(sharedEntry) {
+        if hasMeaningfulData(sharedEntry) && sharedIsFresh {
             cache(entry: sharedEntry, trackingMode: shared.trackingMode)
             return sharedEntry
         }
@@ -166,11 +169,19 @@ struct KcaliTimelineProvider: TimelineProvider {
         let live = try? await buildLiveEntry(shared: shared, trackingMode: trackingMode)
         var entry = live ?? sharedEntry
 
-        if isLikelyPlaceholder(entry), let cached {
+        if live == nil, !sharedIsSameDay, let cached, isSameDay(cached.date) {
             entry = cached
         }
 
-        if !isLikelyPlaceholder(entry) {
+        if isLikelyPlaceholder(entry) {
+            if sharedIsSameDay && hasMeaningfulData(sharedEntry) {
+                entry = sharedEntry
+            } else if let cached, isSameDay(cached.date) {
+                entry = cached
+            }
+        }
+
+        if !isLikelyPlaceholder(entry), isSameDay(entry.date) {
             cache(entry: entry, trackingMode: shared.trackingMode)
         }
 
@@ -184,7 +195,7 @@ struct KcaliTimelineProvider: TimelineProvider {
     }
 
     private func buildLiveEntry(
-        shared: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool),
+        shared: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool, lastUpdated: Date?),
         trackingMode: TrackingMode
     ) async throws -> KcaliEntry {
         let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
@@ -272,6 +283,18 @@ struct KcaliTimelineProvider: TimelineProvider {
         let missingTargets = entry.todaysMinCalsGoal <= 0 || entry.goal <= 0
         let knownFallbackShape = !entry.isSteps && entry.aplGoal == 500 && entry.goal == 500 && entry.todaysCals == 0
         return (emptyProgress && missingTargets) || knownFallbackShape
+    }
+
+    private func isSameDay(_ date: Date?, now: Date = Date()) -> Bool {
+        guard let date else { return false }
+        return Calendar.current.isDate(date, inSameDayAs: now)
+    }
+
+    private func isFresh(_ date: Date?, now: Date = Date()) -> Bool {
+        guard let date else { return false }
+        guard Calendar.current.isDate(date, inSameDayAs: now) else { return false }
+        let maxAge = TimeInterval(Self.refreshMinutes * 60)
+        return now.timeIntervalSince(date) <= maxAge
     }
 
     private func fetchStandingProgressToday() async throws -> (done: Int, goal: Int) {

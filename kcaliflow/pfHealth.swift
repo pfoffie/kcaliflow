@@ -374,6 +374,7 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
             SharedKeys.rollingDays: rollingDays,
             SharedKeys.trackingMode: trackingMode,
             SharedKeys.stoodThisHour: stoodThisHour,
+            SharedKeys.lastUpdated: Date()
         ]
 
         try? session.updateApplicationContext(payload)
