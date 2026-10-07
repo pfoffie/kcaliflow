@@ -149,47 +149,35 @@ struct KcaliTimelineProvider: TimelineProvider {
     private func fetchEntry() async -> KcaliEntry {
         let shared = SharedStore.read()
         let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
+
+        // Always do a live HealthKit read so complications show the most recent data.
+        if let live = try? await buildLiveEntry(shared: shared, trackingMode: trackingMode) {
+            SharedStore.write(
+                aplGoal: live.aplGoal,
+                minCals: live.minCals,
+                avgCals: live.avgCals,
+                goal: live.goal,
+                todaysCals: live.todaysCals,
+                todaysMinCalsGoal: live.todaysMinCalsGoal,
+                rollingDays: shared.rollingDays,
+                trackingMode: shared.trackingMode,
+                stoodThisHour: live.stoodThisHour
+            )
+            cache(entry: live, trackingMode: shared.trackingMode)
+            return live
+        }
+
+        // HealthKit unavailable — fall back to SharedStore then cached entry.
         let sharedEntry = KcaliEntry(from: shared)
-        let sharedIsSameDay = isSameDay(shared.lastUpdated)
-        let sharedIsFresh = isFresh(shared.lastUpdated)
+        if hasMeaningfulData(sharedEntry) { return sharedEntry }
 
-        // Fast path – SharedStore already has real values (written by the Watch App
-        // after a WatchConnectivity sync or by the iOS widget after a HealthKit refresh).
-        // Returning immediately keeps getTimeline well within watchOS's tight background
-        // execution budget, preventing the system from killing the extension before
-        // completion() is called (which would leave the placeholder on screen forever).
-        if hasMeaningfulData(sharedEntry) && sharedIsFresh {
-            cache(entry: sharedEntry, trackingMode: shared.trackingMode)
-            return sharedEntry
+        if let cached = cachedEntry(trackingMode: shared.trackingMode), isSameDay(cached.date) {
+            return cached
         }
 
-        // Slow path – SharedStore is empty (first launch / watch not yet synced).
-        // Fall back to a live HealthKit read.
-        let cached = cachedEntry(trackingMode: shared.trackingMode)
-        let live = try? await buildLiveEntry(shared: shared, trackingMode: trackingMode)
-        var entry = live ?? sharedEntry
-
-        if live == nil, !sharedIsSameDay, let cached, isSameDay(cached.date) {
-            entry = cached
-        }
-
-        if isLikelyPlaceholder(entry) {
-            if sharedIsSameDay && hasMeaningfulData(sharedEntry) {
-                entry = sharedEntry
-            } else if let cached, isSameDay(cached.date) {
-                entry = cached
-            }
-        }
-
-        if !isLikelyPlaceholder(entry), isSameDay(entry.date) {
-            cache(entry: entry, trackingMode: shared.trackingMode)
-        }
-
-        return entry
+        return sharedEntry
     }
 
-    /// Returns true when SharedStore contains at least one non-zero metric, indicating
-    /// that a real data sync has occurred and the entry is worth displaying.
     private func hasMeaningfulData(_ entry: KcaliEntry) -> Bool {
         entry.todaysCals > 0 || entry.avgCals > 0
     }
@@ -232,13 +220,20 @@ struct KcaliTimelineProvider: TimelineProvider {
 
     private static func nextRefreshDate(after now: Date) -> Date {
         let calendar = Calendar.current
-        let rounded = calendar.date(bySetting: .second, value: 0, of: now) ?? now
-        let minute = calendar.component(.minute, from: rounded)
-        let remainder = minute % refreshMinutes
-        let deltaMinutes = remainder == 0 ? refreshMinutes : refreshMinutes - remainder
+        let minute = calendar.component(.minute, from: now)
+        let second = calendar.component(.second, from: now)
+        let startOfMinute = calendar.date(bySetting: .second, value: 0, of: now) ?? now
 
-        return calendar.date(byAdding: .minute, value: deltaMinutes, to: rounded)
-            ?? rounded.addingTimeInterval(Double(refreshMinutes) * 60)
+        // Target schedule: #:00:10, #:05:10, #:10:10 … #:55:10
+        if minute % refreshMinutes == 0 && second < 10 {
+            return startOfMinute.addingTimeInterval(10)
+        }
+
+        let remainder = minute % refreshMinutes
+        let minutesToAdd = remainder == 0 ? refreshMinutes : refreshMinutes - remainder
+        let nextBoundary = calendar.date(byAdding: .minute, value: minutesToAdd, to: startOfMinute)
+            ?? startOfMinute.addingTimeInterval(Double(refreshMinutes) * 60)
+        return nextBoundary.addingTimeInterval(10)
     }
 
     private func cache(entry: KcaliEntry, trackingMode: String) {
@@ -278,23 +273,9 @@ struct KcaliTimelineProvider: TimelineProvider {
         )
     }
 
-    private func isLikelyPlaceholder(_ entry: KcaliEntry) -> Bool {
-        let emptyProgress = entry.todaysCals == 0 && entry.avgCals == 0
-        let missingTargets = entry.todaysMinCalsGoal <= 0 || entry.goal <= 0
-        let knownFallbackShape = !entry.isSteps && entry.aplGoal == 500 && entry.goal == 500 && entry.todaysCals == 0
-        return (emptyProgress && missingTargets) || knownFallbackShape
-    }
-
     private func isSameDay(_ date: Date?, now: Date = Date()) -> Bool {
         guard let date else { return false }
         return Calendar.current.isDate(date, inSameDayAs: now)
-    }
-
-    private func isFresh(_ date: Date?, now: Date = Date()) -> Bool {
-        guard let date else { return false }
-        guard Calendar.current.isDate(date, inSameDayAs: now) else { return false }
-        let maxAge = TimeInterval(Self.refreshMinutes * 60)
-        return now.timeIntervalSince(date) <= maxAge
     }
 
     private func fetchStandingProgressToday() async throws -> (done: Int, goal: Int) {

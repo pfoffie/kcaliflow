@@ -20,7 +20,7 @@ struct ContentView: View {
             .onAppear {
                 WatchSyncListener.shared.activate()
                 reloadModel()
-                WidgetCenter.shared.reloadAllTimelines()
+                refreshFromHealthKit()
             }
             .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
                 reloadModel()
@@ -28,12 +28,47 @@ struct ContentView: View {
             .onChange(of: scenePhase) { _, newPhase in
                 guard newPhase == .active else { return }
                 reloadModel()
-                WidgetCenter.shared.reloadAllTimelines()
+                refreshFromHealthKit()
             }
     }
 
     private func reloadModel() {
         model = .load()
+    }
+
+    private func refreshFromHealthKit() {
+        Task {
+            let shared = SharedStore.read()
+            let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
+            let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
+            let healthService = AppleHealthDataService()
+
+            guard let collection = try? await healthService.fetchCollection(last: 30, mode: trackingMode) else { return }
+
+            let metrics = TrackingMath.makeMetrics(
+                from: collection,
+                goal: resolvedGoal,
+                rollingDays: shared.rollingDays,
+                maxDays: 30
+            )
+
+            SharedStore.write(
+                aplGoal: metrics.appleMoveGoal,
+                minCals: metrics.minimumHistoricalValue,
+                avgCals: metrics.weightedAverage,
+                goal: resolvedGoal,
+                todaysCals: metrics.todaysValue,
+                todaysMinCalsGoal: max(metrics.requiredToday, 1),
+                rollingDays: shared.rollingDays,
+                trackingMode: shared.trackingMode,
+                stoodThisHour: metrics.stoodThisHour
+            )
+
+            await MainActor.run {
+                reloadModel()
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
     }
 }
 
