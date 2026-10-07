@@ -40,6 +40,13 @@ struct SharedStore {
         defaults.set(Date(), forKey: SharedKeys.lastUpdated)
     }
 
+    static func writeSettings(goal: Int, rollingDays: Int, trackingMode: String) {
+        defaults.set(goal, forKey: SharedKeys.goal)
+        defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
+        defaults.set(trackingMode, forKey: SharedKeys.trackingMode)
+        defaults.set(Date(), forKey: SharedKeys.lastUpdated)
+    }
+
     static func read() -> (
         aplGoal: Int,
         minCals: Int,

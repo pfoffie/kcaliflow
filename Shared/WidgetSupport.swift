@@ -186,6 +186,8 @@ struct KcaliTimelineProvider: TimelineProvider {
         shared: (aplGoal: Int, minCals: Int, avgCals: Int, goal: Int, todaysCals: Int, todaysMinCalsGoal: Int, rollingDays: Int, trackingMode: String, stoodThisHour: Bool, lastUpdated: Date?),
         trackingMode: TrackingMode
     ) async throws -> KcaliEntry {
+        try await healthService.requestAuthorization()
+
         let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
         let collection = try await healthService.fetchCollection(last: Self.lookbackDays, mode: trackingMode)
         let metrics = TrackingMath.makeMetrics(

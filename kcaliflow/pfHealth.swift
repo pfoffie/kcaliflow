@@ -305,6 +305,7 @@ final class PFHealth: ObservableObject {
             trackingMode: trackingMode.rawValue,
             stoodThisHour: stoodThisHour
         )
+        SharedStore.writeSettings(goal: goal, rollingDays: rollingDays, trackingMode: trackingMode.rawValue)
 
         #if os(iOS)
         watchSync.push(
@@ -365,15 +366,9 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
         guard let session else { return }
 
         let payload: [String: Any] = [
-            SharedKeys.aplGoal: aplGoal,
-            SharedKeys.minCals: minCals,
-            SharedKeys.avgCals: avgCals,
             SharedKeys.goal: goal,
-            SharedKeys.todaysCals: todaysCals,
-            SharedKeys.todaysMinCalsGoal: todaysMinCalsGoal,
             SharedKeys.rollingDays: rollingDays,
             SharedKeys.trackingMode: trackingMode,
-            SharedKeys.stoodThisHour: stoodThisHour,
             SharedKeys.lastUpdated: Date()
         ]
 

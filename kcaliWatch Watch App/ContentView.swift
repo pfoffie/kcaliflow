@@ -20,7 +20,7 @@ struct ContentView: View {
             .onAppear {
                 WatchSyncListener.shared.activate()
                 reloadModel()
-                refreshFromHealthKit()
+                refreshWithAuthorization()
             }
             .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
                 reloadModel()
@@ -28,12 +28,23 @@ struct ContentView: View {
             .onChange(of: scenePhase) { _, newPhase in
                 guard newPhase == .active else { return }
                 reloadModel()
-                refreshFromHealthKit()
+                refreshWithAuthorization()
             }
     }
 
     private func reloadModel() {
         model = .load()
+    }
+
+    private func refreshWithAuthorization() {
+        Task {
+            do {
+                try await AppleHealthDataService().requestAuthorization()
+                refreshFromHealthKit()
+            } catch {
+                reloadModel()
+            }
+        }
     }
 
     private func refreshFromHealthKit() {
@@ -137,15 +148,9 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
     private func apply(applicationContext: [String: Any]) {
         guard !applicationContext.isEmpty else { return }
 
-        if let v = applicationContext[SharedKeys.aplGoal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.aplGoal) }
-        if let v = applicationContext[SharedKeys.minCals] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.minCals) }
-        if let v = applicationContext[SharedKeys.avgCals] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.avgCals) }
         if let v = applicationContext[SharedKeys.goal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goal) }
-        if let v = applicationContext[SharedKeys.todaysCals] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.todaysCals) }
-        if let v = applicationContext[SharedKeys.todaysMinCalsGoal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.todaysMinCalsGoal) }
         if let v = applicationContext[SharedKeys.rollingDays] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.rollingDays) }
         if let v = applicationContext[SharedKeys.trackingMode] as? String { SharedStore.defaults.set(v, forKey: SharedKeys.trackingMode) }
-        if let v = applicationContext[SharedKeys.stoodThisHour] as? Bool { SharedStore.defaults.set(v, forKey: SharedKeys.stoodThisHour) }
         if let v = applicationContext[SharedKeys.lastUpdated] as? Date {
             SharedStore.defaults.set(v, forKey: SharedKeys.lastUpdated)
         } else {
