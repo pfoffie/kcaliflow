@@ -77,7 +77,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9B1000062F8C000100C28408"
             BuildableName = "kcaliWatchWidgetExtension.appex"
-            BlueprintName = "kcaliWatchWidgetExtension"
             ReferencedContainer = "container:kcaliflow.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -122,7 +121,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9AFDF5CA2F8A6AFA00C28408"
             BuildableName = "kcaliWatch Watch App.app"
-            BlueprintName = "kcaliWatch Watch App"
             ReferencedContainer = "container:kcaliflow.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
