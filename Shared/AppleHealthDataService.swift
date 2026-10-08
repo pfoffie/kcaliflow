@@ -21,6 +21,7 @@ struct Day: Identifiable {
     let id = UUID()
     let day: Int
     let cals: Int
+    let hasData: Bool
 }
 
 /// Raw HealthKit values before kcaliflow applies its weighted-average logic.
@@ -39,9 +40,11 @@ struct AppleHealthCollection {
             let normalizedDate = calendar.startOfDay(for: date)
             let offsetFromToday = maxDays - index - 1
 
+            let cals = dailyValues[normalizedDate]
             return Day(
                 day: offsetFromToday,
-                cals: dailyValues[normalizedDate] ?? 0
+                cals: cals ?? 0,
+                hasData: cals != nil
             )
         }
     }
@@ -84,8 +87,10 @@ enum TrackingMath {
         appleMoveGoal: Int,
         stoodThisHour: Bool
     ) -> TrackingMetrics {
-        let safeRollingDays = max(1, min(rollingDays, allDays.count))
-        let visibleDays = Array(allDays.suffix(safeRollingDays))
+        let dataDays = allDays.filter(\.hasData)
+        let computationDays = dataDays.isEmpty ? allDays : dataDays
+        let safeRollingDays = max(1, min(rollingDays, computationDays.count))
+        let visibleDays = Array(computationDays.suffix(safeRollingDays))
         let calculationDays = Array(visibleDays.reversed())
         let halfLife = autoHalfLife(daysCount: visibleDays.count, endRatio: 0.1)
 
@@ -93,7 +98,7 @@ enum TrackingMath {
             allDays: allDays,
             visibleDays: visibleDays,
             todaysValue: allDays.last?.cals ?? 0,
-            minimumHistoricalValue: allDays.dropLast().map(\.cals).min() ?? 0,
+            minimumHistoricalValue: computationDays.dropLast().map(\.cals).min() ?? 0,
             weightedAverage: weightedAverage(halfLife: halfLife, days: calculationDays),
             requiredToday: requiredToday(goal: Double(goal), halfLife: halfLife, days: calculationDays),
             appleMoveGoal: appleMoveGoal,
