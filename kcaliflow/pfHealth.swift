@@ -365,8 +365,13 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
     ) {
         guard let session else { return }
 
+        let storedCaloriesGoal = UserDefaults.standard.object(forKey: caloriesGoalKey) as? Int ?? TrackingDefaults.goal(for: .calories)
+        let storedStepsGoal = UserDefaults.standard.object(forKey: stepsGoalKey) as? Int ?? TrackingDefaults.goal(for: .steps)
+
         let payload: [String: Any] = [
             SharedKeys.goal: goal,
+            SharedKeys.goalCalories: storedCaloriesGoal,
+            SharedKeys.goalSteps: storedStepsGoal,
             SharedKeys.rollingDays: rollingDays,
             SharedKeys.trackingMode: trackingMode,
             SharedKeys.lastUpdated: Date()

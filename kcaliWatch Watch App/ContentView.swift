@@ -149,6 +149,8 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         guard !applicationContext.isEmpty else { return }
 
         if let v = applicationContext[SharedKeys.goal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goal) }
+        if let v = applicationContext[SharedKeys.goalCalories] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goalCalories) }
+        if let v = applicationContext[SharedKeys.goalSteps] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goalSteps) }
         if let v = applicationContext[SharedKeys.rollingDays] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.rollingDays) }
         if let v = applicationContext[SharedKeys.trackingMode] as? String { SharedStore.defaults.set(v, forKey: SharedKeys.trackingMode) }
         if let v = applicationContext[SharedKeys.lastUpdated] as? Date {

@@ -6,6 +6,8 @@ enum SharedKeys {
     static let minCals           = "minCals"
     static let avgCals           = "avgCals"
     static let goal              = "goal"
+    static let goalCalories      = "goal_calories"
+    static let goalSteps         = "goal_steps"
     static let todaysCals        = "todaysCals"
     static let todaysMinCalsGoal = "todaysMinCalsGoal"
     static let rollingDays       = "rollingDays"
@@ -16,6 +18,25 @@ enum SharedKeys {
 
 struct SharedStore {
     static let defaults = UserDefaults(suiteName: "group.ch.enjor.health")!
+
+    private static func goalKey(for mode: TrackingMode) -> String {
+        mode == .steps ? SharedKeys.goalSteps : SharedKeys.goalCalories
+    }
+
+    static func currentGoal(for trackingMode: String) -> Int {
+        let mode = TrackingMode(rawValue: trackingMode) ?? .calories
+        let modeGoal = defaults.integer(forKey: goalKey(for: mode))
+        if modeGoal > 0 {
+            return modeGoal
+        }
+
+        let genericGoal = defaults.integer(forKey: SharedKeys.goal)
+        if genericGoal > 0 {
+            return genericGoal
+        }
+
+        return TrackingDefaults.goal(for: mode)
+    }
 
     static func write(
         aplGoal: Int,
@@ -28,10 +49,13 @@ struct SharedStore {
         trackingMode: String,
         stoodThisHour: Bool
     ) {
+        let mode = TrackingMode(rawValue: trackingMode) ?? .calories
+
         defaults.set(aplGoal, forKey: SharedKeys.aplGoal)
         defaults.set(minCals, forKey: SharedKeys.minCals)
         defaults.set(avgCals, forKey: SharedKeys.avgCals)
         defaults.set(goal, forKey: SharedKeys.goal)
+        defaults.set(goal, forKey: goalKey(for: mode))
         defaults.set(todaysCals, forKey: SharedKeys.todaysCals)
         defaults.set(todaysMinCalsGoal, forKey: SharedKeys.todaysMinCalsGoal)
         defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
@@ -41,7 +65,10 @@ struct SharedStore {
     }
 
     static func writeSettings(goal: Int, rollingDays: Int, trackingMode: String) {
+        let mode = TrackingMode(rawValue: trackingMode) ?? .calories
+
         defaults.set(goal, forKey: SharedKeys.goal)
+        defaults.set(goal, forKey: goalKey(for: mode))
         defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
         defaults.set(trackingMode, forKey: SharedKeys.trackingMode)
         defaults.set(Date(), forKey: SharedKeys.lastUpdated)
@@ -59,16 +86,20 @@ struct SharedStore {
         stoodThisHour: Bool,
         lastUpdated: Date?
     ) {
+        let trackingMode = defaults.string(forKey: SharedKeys.trackingMode) ?? "calories"
+        let mode = TrackingMode(rawValue: trackingMode) ?? .calories
         let storedRollingDays = defaults.integer(forKey: SharedKeys.rollingDays)
+        let resolvedGoal = currentGoal(for: trackingMode)
+
         return (
             defaults.integer(forKey: SharedKeys.aplGoal),
             defaults.integer(forKey: SharedKeys.minCals),
             defaults.integer(forKey: SharedKeys.avgCals),
-            defaults.integer(forKey: SharedKeys.goal),
+            resolvedGoal > 0 ? resolvedGoal : TrackingDefaults.goal(for: mode),
             defaults.integer(forKey: SharedKeys.todaysCals),
             defaults.integer(forKey: SharedKeys.todaysMinCalsGoal),
             storedRollingDays > 0 ? storedRollingDays : 7,
-            defaults.string(forKey: SharedKeys.trackingMode) ?? "calories",
+            trackingMode,
             defaults.bool(forKey: SharedKeys.stoodThisHour),
             defaults.object(forKey: SharedKeys.lastUpdated) as? Date
         )
