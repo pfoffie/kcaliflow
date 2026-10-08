@@ -209,6 +209,23 @@ final class AppleHealthDataService {
         }
     }
 
+    func fetchTodayValue(mode: TrackingMode) async throws -> Int {
+        let today = Calendar.current.startOfDay(for: Date())
+
+        switch mode {
+        case .steps:
+            let dailyValues = try await fetchStepsByDay(last: 1)
+            return dailyValues[today] ?? 0
+
+        case .calories:
+            let summaries = try await fetchActivitySummaries(last: 1)
+            let normalizedValues = Dictionary(
+                uniqueKeysWithValues: summaries.map { (Calendar.current.startOfDay(for: $0.date), $0.kcal) }
+            )
+            return normalizedValues[today] ?? 0
+        }
+    }
+
     private func fetchActivitySummaries(last days: Int) async throws -> [(date: Date, kcal: Int)] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())

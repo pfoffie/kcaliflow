@@ -19,7 +19,11 @@ struct ContentView: View {
             .padding(6)
             .onAppear {
                 WatchSyncListener.shared.activate()
-                reloadModel()
+                let shared = SharedStore.readSnapshot()
+                if shared.lastUpdated != nil && Date().timeIntervalSince(shared.lastUpdated!) < 300 {
+                    reloadModel()
+                    return
+                }
                 refreshWithAuthorization()
             }
             .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
@@ -27,7 +31,11 @@ struct ContentView: View {
             }
             .onChange(of: scenePhase) { _, newPhase in
                 guard newPhase == .active else { return }
-                reloadModel()
+                let shared = SharedStore.readSnapshot()
+                if shared.lastUpdated != nil && Date().timeIntervalSince(shared.lastUpdated!) < 300 {
+                    reloadModel()
+                    return
+                }
                 refreshWithAuthorization()
             }
     }
@@ -51,28 +59,23 @@ struct ContentView: View {
         Task {
             let shared = SharedStore.read()
             let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
-            let resolvedGoal = max(shared.goal, TrackingDefaults.goal(for: trackingMode))
             let healthService = AppleHealthDataService()
 
-            guard let collection = try? await healthService.fetchCollection(last: 30, mode: trackingMode) else { return }
-
-            let metrics = TrackingMath.makeMetrics(
-                from: collection,
-                goal: resolvedGoal,
-                rollingDays: shared.rollingDays,
-                maxDays: 30
-            )
+            guard let todayValue = try? await healthService.fetchTodayValue(mode: trackingMode) else {
+                await MainActor.run { reloadModel() }
+                return
+            }
 
             SharedStore.write(
-                aplGoal: metrics.appleMoveGoal,
-                minCals: metrics.minimumHistoricalValue,
-                avgCals: metrics.weightedAverage,
-                goal: resolvedGoal,
-                todaysCals: metrics.todaysValue,
-                todaysMinCalsGoal: max(metrics.requiredToday, 1),
+                aplGoal: shared.aplGoal,
+                minCals: shared.minCals,
+                avgCals: shared.avgCals,
+                goal: shared.goal,
+                todaysCals: todayValue,
+                todaysMinCalsGoal: shared.todaysMinCalsGoal,
                 rollingDays: shared.rollingDays,
                 trackingMode: shared.trackingMode,
-                stoodThisHour: metrics.stoodThisHour
+                stoodThisHour: shared.stoodThisHour
             )
 
             await MainActor.run {
@@ -199,15 +202,13 @@ private struct WatchWidgetVisualView: View {
                     if model.usesAppleMoveGoal {
                         Text("")
                             .font(.caption2)
-                        
+
                         Text("\(model.todaysCals) / \(model.aplGoal)")
                             .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    }else{
-
+                    } else {
                         Text("\(model.todaysCals) / \(model.todaysMinCalsGoal)")
                             .font(.system(size: 15, weight: .semibold, design: .rounded))
                     }
-
 
                     Text("ø \(model.avgCals) / \(model.goal)")
                         .font(.caption2)
