@@ -43,23 +43,39 @@ struct ContentView: View {
                 )
             }
             .padding(6)
-            .onAppear {
-                WatchSyncListener.shared.activate()
-                reloadModel()
-                refreshWithAuthorization()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
-                reloadModel()
-            }
-            .onChange(of: scenePhase) { _, newPhase in
-                guard newPhase == .active else { return }
-                reloadModel()
-                refreshWithAuthorization()
-            }
+        }
+        .sheet(isPresented: $showInfo) {
+            WatchInfoView()
+        }
+        .onAppear {
+            WatchSyncListener.shared.activate()
+            reloadModel()
+            reloadSettings()
+            refreshIfStale()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
+            reloadModel()
+            reloadSettings()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            reloadModel()
+            reloadSettings()
+            refreshIfStale()
+        }
     }
 
     private func reloadModel() {
         model = .load()
+    }
+
+    // Skip the HealthKit refresh when the shared data was updated within the last 5 minutes.
+    private func refreshIfStale() {
+        if let lastUpdated = SharedStore.readSnapshot().lastUpdated,
+           Date().timeIntervalSince(lastUpdated) < 300 {
+            return
+        }
+        refreshWithAuthorization()
     }
 
     private func reloadSettings() {
@@ -102,14 +118,10 @@ struct ContentView: View {
             let trackingMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
             let healthService = AppleHealthDataService()
 
-            guard let collection = try? await healthService.fetchCollection(last: 30, mode: trackingMode) else { return }
-
-            let metrics = TrackingMath.makeMetrics(
-                from: collection,
-                goal: resolvedGoal,
-                rollingDays: shared.rollingDays,
-                maxDays: 30
-            )
+            guard let todayValue = try? await healthService.fetchTodayValue(mode: trackingMode) else {
+                await MainActor.run { reloadModel() }
+                return
+            }
 
             SharedStore.write(
                 aplGoal: shared.aplGoal,
@@ -287,14 +299,14 @@ private struct WatchSettingsView: View {
             Text("Settings")
                 .font(.headline)
 
-            Picker("Mode", selection: $trackingMode) {
-                Text("Calories").tag(TrackingMode.calories)
-                Text("Steps").tag(TrackingMode.steps)
+            // Segmented pickers are unavailable on watchOS, so the mode switch uses two buttons.
+            HStack(spacing: 6) {
+                modeButton("Calories", mode: .calories)
+                modeButton("Steps", mode: .steps)
             }
-            .pickerStyle(.segmented)
-                .onChange(of: trackingMode) { _, newMode in
-                    goal = SharedStore.currentGoal(for: newMode.rawValue)
-                }
+            .onChange(of: trackingMode) { _, newMode in
+                goal = SharedStore.currentGoal(for: newMode.rawValue)
+            }
 
             Stepper(value: $goal, in: 0...(trackingMode == .steps ? 50_000 : 5_000), step: trackingMode == .steps ? 500 : 5) {
                 HStack {
@@ -320,6 +332,20 @@ private struct WatchSettingsView: View {
         .padding()
         .background(.quaternary)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func modeButton(_ title: LocalizedStringKey, mode: TrackingMode) -> some View {
+        Button {
+            trackingMode = mode
+        } label: {
+            Text(title)
+                .font(.footnote)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .tint(trackingMode == mode ? .accentColor : .secondary)
     }
 }
 
