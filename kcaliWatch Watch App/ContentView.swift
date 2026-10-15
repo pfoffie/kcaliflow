@@ -18,31 +18,52 @@ struct ContentView: View {
     @State private var settingsMode = TrackingMode.calories
     @State private var showInfo = false
 
+    // How much of the first glass bubble peeks in at the bottom to hint that the page scrolls.
+    private let overlayPeek: CGFloat = 26
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                HStack {
-                    Spacer()
+        NavigationStack {
+            GeometryReader { geo in
+                ScrollView {
+                    VStack(spacing: 8) {
+                        // Transparent spacer keeps the rings fully visible until the user scrolls
+                        // the glass overlays up over them.
+                        Color.clear
+                            .frame(height: max(geo.size.height - overlayPeek, 0))
+
+                        if model.remainingToTarget > 0 {
+                            WatchRemainingBubble(
+                                remaining: model.remainingToTarget,
+                                isSteps: model.isSteps
+                            )
+                        }
+
+                        WatchSettingsView(
+                            goal: $settingsGoal,
+                            rollingDays: $settingsRollingDays,
+                            trackingMode: $settingsMode,
+                            onSave: saveSettings
+                        )
+                    }
+                    .padding(.horizontal, 2)
+                    .padding(.bottom, 8)
+                }
+                .scrollIndicators(.hidden)
+            }
+            .background {
+                WatchWidgetVisualView(model: model)
+                    .ignoresSafeArea()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showInfo = true
                     } label: {
-                        Image(systemName: "questionmark.circle")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
+                        Image(systemName: "questionmark")
                     }
+                    .accessibilityLabel(String(localized: "info_page_nav_title"))
                 }
-
-                WatchWidgetVisualView(model: model)
-                    .frame(height: 175)
-
-                WatchSettingsView(
-                    goal: $settingsGoal,
-                    rollingDays: $settingsRollingDays,
-                    trackingMode: $settingsMode,
-                    onSave: saveSettings
-                )
             }
-            .padding(6)
         }
         .sheet(isPresented: $showInfo) {
             WatchInfoView()
@@ -172,6 +193,16 @@ private struct WatchWidgetVisualModel {
         !isSteps && aplGoal > todaysMinCalsGoal
     }
 
+    /// Step rings use the configured goal rather than the rolling minimum.
+    var todayTarget: Int {
+        if isSteps { return goal }
+        return usesAppleMoveGoal ? aplGoal : todaysMinCalsGoal
+    }
+
+    var remainingToTarget: Int {
+        max(todayTarget - todaysCals, 0)
+    }
+
     static func load() -> WatchWidgetVisualModel {
         WatchWidgetVisualModel(snapshot: SharedStore.readSnapshot())
     }
@@ -244,7 +275,9 @@ private struct WatchWidgetVisualView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let anchor = (geo.size.width + geo.size.height) / 2
+            // The view fills the whole screen, so size the rings from the short side to keep
+            // the goal circle fully visible.
+            let anchor = min(geo.size.width, geo.size.height) * 0.9
 
             ZStack {
                 ForEach(rings) { ring in
@@ -268,23 +301,49 @@ private struct WatchWidgetVisualView: View {
                     if model.usesAppleMoveGoal {
                         Text("")
                             .font(.caption2)
-
-                        Text("\(model.todaysCals) / \(model.aplGoal)")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    } else {
-                        Text("\(model.todaysCals) / \(model.todaysMinCalsGoal)")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
                     }
+
+                    Text("\(model.todaysCals) / \(model.todayTarget)")
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .lineLimit(1)
 
                     Text("ø \(model.avgCals) / \(model.goal)")
                         .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .frame(maxWidth: anchor * 0.8)
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)
             }
         }
+    }
+}
+
+private struct WatchRemainingBubble: View {
+    let remaining: Int
+    let isSteps: Bool
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: isSteps ? "figure.walk" : "flame.fill")
+                .font(.body)
+                .foregroundStyle(isSteps ? Color.orange : Color.pink)
+
+            Text(
+                String(localized: isSteps ? "info_rest_steps" : "info_rest_kcal")
+                    .replacingOccurrences(of: "{kcal}", with: "\(remaining)")
+            )
+            .font(.system(.headline, design: .rounded))
+            .monospacedDigit()
+            .lineLimit(2)
+            .minimumScaleFactor(0.7)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .glassEffect(.regular, in: .rect(cornerRadius: 22))
     }
 }
 
@@ -295,57 +354,87 @@ private struct WatchSettingsView: View {
     let onSave: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Settings")
+        VStack(alignment: .leading, spacing: 10) {
+            Text(String(localized: "info_page_settings_title"))
                 .font(.headline)
+                .padding(.leading, 4)
 
-            // Segmented pickers are unavailable on watchOS, so the mode switch uses two buttons.
-            HStack(spacing: 6) {
-                modeButton("Calories", mode: .calories)
-                modeButton("Steps", mode: .steps)
+            // Segmented pickers are unavailable on watchOS, so the mode switch is a custom capsule control.
+            HStack(spacing: 2) {
+                modeButton(String(localized: "mode_calories"), mode: .calories)
+                modeButton(String(localized: "mode_steps"), mode: .steps)
             }
+            .padding(3)
+            .background(Capsule().fill(.white.opacity(0.08)))
             .onChange(of: trackingMode) { _, newMode in
                 goal = SharedStore.currentGoal(for: newMode.rawValue)
             }
 
-            Stepper(value: $goal, in: 0...(trackingMode == .steps ? 50_000 : 5_000), step: trackingMode == .steps ? 500 : 5) {
-                HStack {
-                    Text(trackingMode == .steps ? "Step goal" : "Calorie goal")
-                    Spacer()
-                    Text("\(goal)")
-                        .monospacedDigit()
+            VStack(alignment: .leading, spacing: 2) {
+                settingTitle(trackingMode == .steps ? "Step goal" : "Calorie goal")
+                Stepper(value: $goal, in: 0...(trackingMode == .steps ? 50_000 : 5_000), step: trackingMode == .steps ? 500 : 5) {
+                    valueLabel("\(goal)", unit: trackingMode == .steps ? "steps" : "kcal")
                 }
             }
 
-            Stepper(value: $rollingDays, in: 2...30) {
-                HStack {
-                    Text("Average over")
-                    Spacer()
-                    Text("\(rollingDays) days")
-                        .monospacedDigit()
+            VStack(alignment: .leading, spacing: 2) {
+                settingTitle("Average over")
+                Stepper(value: $rollingDays, in: 2...30) {
+                    valueLabel("\(rollingDays)", unit: "days")
                 }
             }
 
-            Button("Save settings", action: onSave)
-                .frame(maxWidth: .infinity)
+            Button(action: onSave) {
+                Text("Save settings")
+                    .font(.footnote.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
         }
-        .padding()
-        .background(.quaternary)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(10)
+        .glassEffect(.regular, in: .rect(cornerRadius: 26))
     }
 
-    private func modeButton(_ title: LocalizedStringKey, mode: TrackingMode) -> some View {
-        Button {
+    private func settingTitle(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .padding(.leading, 4)
+    }
+
+    private func valueLabel(_ value: String, unit: LocalizedStringKey) -> some View {
+        VStack(spacing: 0) {
+            Text(value)
+                .font(.system(.title3, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(unit)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func modeButton(_ title: String, mode: TrackingMode) -> some View {
+        let isSelected = trackingMode == mode
+        return Button {
             trackingMode = mode
         } label: {
             Text(title)
-                .font(.footnote)
+                .font(.footnote.weight(isSelected ? .semibold : .regular))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .foregroundStyle(isSelected ? Color.primary : Color.secondary)
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 6)
+                .background {
+                    if isSelected {
+                        Capsule().fill(Color.accentColor.opacity(0.45))
+                    }
+                }
+                .contentShape(Capsule())
         }
-        .buttonStyle(.bordered)
-        .tint(trackingMode == mode ? .accentColor : .secondary)
+        .buttonStyle(.plain)
     }
 }
 

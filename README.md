@@ -12,6 +12,7 @@ kcaliflow is a health and fitness tracking app for iPhone, Apple Watch, and widg
 - **Today's minimum** — calculates the minimum activity needed today to stay on track with your goal
 - **Dual tracking modes** — switch between active calories or step count
 - **Interactive chart** — tap any data point to see its value; color-coded bands show your goal zone
+- **Apple Watch dashboard** — fixed activity circles with scrollable Liquid Glass settings and a remaining-activity bubble above them. Remaining steps use the configured step goal; remaining calories use the higher of today's minimum and the Apple Move goal. The bubble disappears when that target is reached.
 - **Apple Watch complications** — circular and rectangular complications for your watch face
 - **Home Screen widgets** — small widget with stand-hour ring indicators
 - **HealthKit integration** — reads active energy, steps, Activity summaries, and stand hours
