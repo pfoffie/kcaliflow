@@ -92,6 +92,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"/Localized: Strings/InfoPlist.strings",
+				"/Localized: Strings/Localizable.strings",
 				Assets/kcaliflow.icon,
 			);
 			target = 9AFDF5CA2F8A6AFA00C28408 /* kcaliWatch Watch App */;
@@ -111,6 +112,14 @@
 			);
 			target = 9AC59C172EA90FEA002696FA /* kcaliWidgetExtension */;
 		};
+		9AC90EEF3080E64200D719B7 /* Exceptions for "kcaliflow" folder in "kcaliWatchWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"/Localized: Strings/InfoPlist.strings",
+				"/Localized: Strings/Localizable.strings",
+			);
+			target = 9B1000062F8C000100C28408 /* kcaliWatchWidgetExtension */;
+		};
 		9B10000C2F8C000100C28408 /* Exceptions for "kcaliWatchWidget" folder in "kcaliWatchWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -125,6 +134,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9AC59C2C2EA9101A002696FA /* Exceptions for "kcaliflow" folder in "kcaliWidgetExtension" target */,
+				9AC90EEF3080E64200D719B7 /* Exceptions for "kcaliflow" folder in "kcaliWatchWidgetExtension" target */,
 				9AA2DDAC2F8A6FDA000C15EC /* Exceptions for "kcaliflow" folder in "kcaliWatch Watch App" target */,
 			);
 			path = kcaliflow;
