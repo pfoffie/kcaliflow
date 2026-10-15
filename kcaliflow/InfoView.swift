@@ -71,6 +71,15 @@ struct InfoView: View {
                     ) {
                         Text("info_page_standing_body")
                     }
+
+                    infoCard(
+                        icon: "info.circle",
+                        iconColor: .secondary,
+                        title: String(localized: "info_page_version_title")
+                    ) {
+                        Text(AppVersionInfo.current.displayText)
+                            .monospacedDigit()
+                    }
                 }
                 .padding()
             }

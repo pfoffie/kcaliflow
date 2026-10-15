@@ -3,7 +3,7 @@ import HealthKit
 
 /// The two tracking modes that the apps, widgets, and watch surfaces can display.
 /// Keeping this enum in shared code ensures every target speaks the same language.
-enum TrackingMode: String {
+enum TrackingMode: String, Hashable {
     case calories
     case steps
 }

@@ -99,6 +99,13 @@ final class PFHealth: ObservableObject {
         if type == "widget" {
             mirrorFromSharedStore()
         } else {
+            NotificationCenter.default.addObserver(
+                forName: .sharedStoreDidUpdate,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.applyWatchSettings()
+            }
             loadData()
         }
     }
@@ -324,6 +331,17 @@ final class PFHealth: ObservableObject {
         WidgetCenter.shared.reloadAllTimelines()
     }
 
+    private func applyWatchSettings() {
+        guard let mode = TrackingMode(rawValue: UserDefaults.standard.string(forKey: modeKey) ?? "") else {
+            return
+        }
+        trackingMode = mode
+        let storedDays = UserDefaults.standard.integer(forKey: daysKey)
+        rollingDays = storedDays > 0 ? max(2, min(storedDays, maxDays)) : 7
+        goal = persistedGoal(for: mode)
+        loadData()
+    }
+
     func mirrorFromSharedStore() {
         let shared = SharedStore.read()
         aplGoal = shared.aplGoal
@@ -369,18 +387,51 @@ private final class PhoneWatchSyncBridge: NSObject, WCSessionDelegate {
         let storedStepsGoal = UserDefaults.standard.object(forKey: stepsGoalKey) as? Int ?? TrackingDefaults.goal(for: .steps)
 
         let payload: [String: Any] = [
+            SharedKeys.aplGoal: aplGoal,
+            SharedKeys.minCals: minCals,
+            SharedKeys.avgCals: avgCals,
             SharedKeys.goal: goal,
             SharedKeys.goalCalories: storedCaloriesGoal,
             SharedKeys.goalSteps: storedStepsGoal,
+            SharedKeys.todaysCals: todaysCals,
+            SharedKeys.todaysMinCalsGoal: todaysMinCalsGoal,
             SharedKeys.rollingDays: rollingDays,
             SharedKeys.trackingMode: trackingMode,
+            SharedKeys.stoodThisHour: stoodThisHour,
             SharedKeys.lastUpdated: Date()
         ]
 
-        try? session.updateApplicationContext(payload)
+        do {
+            try session.updateApplicationContext(payload)
+        } catch {
+            NSLog("Watch sync failed: \(error.localizedDescription)")
+        }
     }
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        guard !applicationContext.isEmpty else { return }
+
+        if let mode = applicationContext[SharedKeys.trackingMode] as? String {
+            UserDefaults.standard.set(mode, forKey: modeKey)
+        }
+        if let goal = applicationContext[SharedKeys.goal] as? Int {
+            UserDefaults.standard.set(goal, forKey: goalKey)
+        }
+        if let goal = applicationContext[SharedKeys.goalCalories] as? Int {
+            UserDefaults.standard.set(goal, forKey: caloriesGoalKey)
+        }
+        if let goal = applicationContext[SharedKeys.goalSteps] as? Int {
+            UserDefaults.standard.set(goal, forKey: stepsGoalKey)
+        }
+        if let days = applicationContext[SharedKeys.rollingDays] as? Int {
+            UserDefaults.standard.set(days, forKey: daysKey)
+        }
+
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .sharedStoreDidUpdate, object: nil)
+        }
+    }
     func sessionDidBecomeInactive(_ session: WCSession) {}
     func sessionDidDeactivate(_ session: WCSession) { session.activate() }
 }
