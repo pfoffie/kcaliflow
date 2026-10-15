@@ -1,6 +1,10 @@
 import Foundation
 import SwiftUI
 
+extension Notification.Name {
+    static let sharedStoreDidUpdate = Notification.Name("sharedStoreDidUpdate")
+}
+
 enum SharedKeys {
     static let aplGoal           = "aplGoal"
     static let minCals           = "minCals"
@@ -14,6 +18,7 @@ enum SharedKeys {
     static let trackingMode      = "trackingMode"
     static let stoodThisHour     = "stoodThisHour"
     static let lastUpdated       = "lastUpdated"
+    static let syncSource        = "syncSource"
 }
 
 struct SharedStore {
@@ -72,6 +77,34 @@ struct SharedStore {
         defaults.set(rollingDays, forKey: SharedKeys.rollingDays)
         defaults.set(trackingMode, forKey: SharedKeys.trackingMode)
         defaults.set(Date(), forKey: SharedKeys.lastUpdated)
+    }
+
+    static func apply(applicationContext: [String: Any]) {
+        let keys = [
+            SharedKeys.aplGoal,
+            SharedKeys.minCals,
+            SharedKeys.avgCals,
+            SharedKeys.goal,
+            SharedKeys.goalCalories,
+            SharedKeys.goalSteps,
+            SharedKeys.todaysCals,
+            SharedKeys.todaysMinCalsGoal,
+            SharedKeys.rollingDays,
+            SharedKeys.trackingMode,
+            SharedKeys.stoodThisHour
+        ]
+
+        for key in keys {
+            if let value = applicationContext[key] {
+                defaults.set(value, forKey: key)
+            }
+        }
+
+        if let value = applicationContext[SharedKeys.lastUpdated] as? Date {
+            defaults.set(value, forKey: SharedKeys.lastUpdated)
+        } else {
+            defaults.set(Date(), forKey: SharedKeys.lastUpdated)
+        }
     }
 
     static func read() -> (

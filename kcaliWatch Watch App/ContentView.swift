@@ -13,27 +13,83 @@ import WidgetKit
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var model = WatchWidgetVisualModel.load()
+    @State private var settingsGoal = 500
+    @State private var settingsRollingDays = 7
+    @State private var settingsMode = TrackingMode.calories
+    @State private var showInfo = false
 
     var body: some View {
-        WatchWidgetVisualView(model: model)
+        ScrollView {
+            VStack(spacing: 12) {
+                HStack {
+                    Spacer()
+                    Button {
+                        showInfo = true
+                    } label: {
+                        Image(systemName: "questionmark.circle")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                WatchWidgetVisualView(model: model)
+                    .frame(height: 175)
+
+                WatchSettingsView(
+                    goal: $settingsGoal,
+                    rollingDays: $settingsRollingDays,
+                    trackingMode: $settingsMode,
+                    onSave: saveSettings
+                )
+            }
             .padding(6)
-            .onAppear {
-                WatchSyncListener.shared.activate()
-                reloadModel()
-                refreshWithAuthorization()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
-                reloadModel()
-            }
-            .onChange(of: scenePhase) { _, newPhase in
-                guard newPhase == .active else { return }
-                reloadModel()
-                refreshWithAuthorization()
-            }
+        }
+        .sheet(isPresented: $showInfo) {
+            WatchInfoView()
+        }
+        .onAppear {
+            WatchSyncListener.shared.activate()
+            reloadModel()
+            reloadSettings()
+            refreshWithAuthorization()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .watchSharedStoreDidUpdate)) { _ in
+            reloadModel()
+            reloadSettings()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            reloadModel()
+            reloadSettings()
+            refreshWithAuthorization()
+        }
     }
 
     private func reloadModel() {
         model = .load()
+    }
+
+    private func reloadSettings() {
+        let shared = SharedStore.read()
+        settingsGoal = shared.goal
+        settingsRollingDays = shared.rollingDays
+        settingsMode = TrackingMode(rawValue: shared.trackingMode) ?? .calories
+    }
+
+    private func saveSettings() {
+        let goal = max(settingsGoal, 0)
+        SharedStore.writeSettings(
+            goal: goal,
+            rollingDays: settingsRollingDays,
+            trackingMode: settingsMode.rawValue
+        )
+        WatchSyncListener.shared.pushSettings(
+            goal: goal,
+            rollingDays: settingsRollingDays,
+            trackingMode: settingsMode.rawValue
+        )
+        reloadModel()
+        refreshFromHealthKit()
     }
 
     private func refreshWithAuthorization() {
@@ -62,6 +118,8 @@ struct ContentView: View {
                 rollingDays: shared.rollingDays,
                 maxDays: 30
             )
+
+            guard collection.dailyValues.count >= 2 else { return }
 
             SharedStore.write(
                 aplGoal: metrics.appleMoveGoal,
@@ -145,19 +203,28 @@ private final class WatchSyncListener: NSObject, WCSessionDelegate {
         apply(applicationContext: applicationContext)
     }
 
+    func pushSettings(goal: Int, rollingDays: Int, trackingMode: String) {
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated else { return }
+        do {
+            try session.updateApplicationContext([
+                SharedKeys.goal: goal,
+                SharedKeys.goalCalories: trackingMode == TrackingMode.calories.rawValue ? goal : SharedStore.defaults.integer(forKey: SharedKeys.goalCalories),
+                SharedKeys.goalSteps: trackingMode == TrackingMode.steps.rawValue ? goal : SharedStore.defaults.integer(forKey: SharedKeys.goalSteps),
+                SharedKeys.rollingDays: rollingDays,
+                SharedKeys.trackingMode: trackingMode,
+                SharedKeys.lastUpdated: Date()
+            ])
+        } catch {
+            NSLog("Watch settings sync failed: \(error.localizedDescription)")
+        }
+    }
+
     private func apply(applicationContext: [String: Any]) {
         guard !applicationContext.isEmpty else { return }
 
-        if let v = applicationContext[SharedKeys.goal] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goal) }
-        if let v = applicationContext[SharedKeys.goalCalories] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goalCalories) }
-        if let v = applicationContext[SharedKeys.goalSteps] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.goalSteps) }
-        if let v = applicationContext[SharedKeys.rollingDays] as? Int { SharedStore.defaults.set(v, forKey: SharedKeys.rollingDays) }
-        if let v = applicationContext[SharedKeys.trackingMode] as? String { SharedStore.defaults.set(v, forKey: SharedKeys.trackingMode) }
-        if let v = applicationContext[SharedKeys.lastUpdated] as? Date {
-            SharedStore.defaults.set(v, forKey: SharedKeys.lastUpdated)
-        } else {
-            SharedStore.defaults.set(Date(), forKey: SharedKeys.lastUpdated)
-        }
+        SharedStore.apply(applicationContext: applicationContext)
 
         DispatchQueue.main.async {
             WidgetCenter.shared.reloadAllTimelines()
@@ -218,6 +285,103 @@ private struct WatchWidgetVisualView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
+    }
+}
+
+private struct WatchSettingsView: View {
+    @Binding var goal: Int
+    @Binding var rollingDays: Int
+    @Binding var trackingMode: TrackingMode
+    let onSave: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Settings")
+                .font(.headline)
+
+            Picker("Mode", selection: $trackingMode) {
+                Text("Calories").tag(TrackingMode.calories)
+                Text("Steps").tag(TrackingMode.steps)
+            }
+            .pickerStyle(.segmented)
+                .onChange(of: trackingMode) { _, newMode in
+                    goal = SharedStore.currentGoal(for: newMode.rawValue)
+                }
+
+            Stepper(value: $goal, in: 0...(trackingMode == .steps ? 50_000 : 5_000), step: trackingMode == .steps ? 500 : 5) {
+                HStack {
+                    Text(trackingMode == .steps ? "Step goal" : "Calorie goal")
+                    Spacer()
+                    Text("\(goal)")
+                        .monospacedDigit()
+                }
+            }
+
+            Stepper(value: $rollingDays, in: 2...30) {
+                HStack {
+                    Text("Average over")
+                    Spacer()
+                    Text("\(rollingDays) days")
+                        .monospacedDigit()
+                }
+            }
+
+            Button("Save settings", action: onSave)
+                .frame(maxWidth: .infinity)
+        }
+        .padding()
+        .background(.quaternary)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+private struct WatchInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    explanation(
+                        title: String(localized: "info_page_concept_title"),
+                        body: String(localized: "info_page_concept_body")
+                    )
+                    explanation(
+                        title: String(localized: "info_page_min_title"),
+                        body: String(localized: "info_page_min_body")
+                    )
+                    explanation(
+                        title: String(localized: "info_page_settings_title"),
+                        body: String(localized: "info_page_settings_body")
+                    )
+                    explanation(
+                        title: String(localized: "info_page_version_title"),
+                        body: AppVersionInfo.current.displayText
+                    )
+                }
+                .padding()
+            }
+            .navigationTitle(String(localized: "info_page_nav_title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(String(localized: "button_done")) { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func explanation(title: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(title)
+                .font(.headline)
+            Text(body)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.quaternary)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
